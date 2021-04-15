@@ -1,0 +1,30 @@
+[package]
+name = "gnome-search-providers-vscode"
+description = "Gnome search providers for recent workspace in VSCode variants"
+readme = "README.md"
+homepage = "https://github.com/lunaryorn/gnome-search-providers-vscode"
+repository = "https://github.com/lunaryorn/gnome-search-providers-vscode"
+version = "1.0.0"
+license = "MPL-2.0"
+authors = ["Sebastian Wiesner <sebastian@swsnr.de>"]
+edition = "2018"
+# We don't publish this to crates.io; you can't install it with cargo install
+# because you'd miss the required service and configuration files, and you
+# wouldn't want to depend on it either.
+publish = false
+
+[dependencies]
+zbus = "^1.9"
+gio = "^0.9"
+dirs = "3.0.1"
+anyhow = "^1.0"
+env_logger = "^0.8"
+log = "^0.4"
+clap = "^2.33"
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "^1.0"
+
+[dev-dependencies]
+pretty_assertions = "^0.7"
+rust-ini = "^0.17"
+globwalk = "^0.8"

@@ -1,0 +1,21 @@
+{
+  "telemetry.machineId": "stop tracking me",
+  "openedPathsList": {
+    "workspaces3": [
+      "file:///home/foo//mdcat",
+      "file:///home/foo//gnome-jetbrains-search-provider",
+      "file:///home/foo//gnome-shell",
+      "file:///home/foo//sbctl"
+    ],
+    "files2": [
+      "file:///tmp/foo"
+    ]
+  },
+  "lastKnownMenubarData": {},
+  "theme": "vs",
+  "themeBackground": "#ffffff",
+  "windowsState": {
+    "lastActiveWindow": {},
+    "openedWindows": []
+  }
+}
