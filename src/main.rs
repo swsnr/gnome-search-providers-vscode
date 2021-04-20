@@ -16,7 +16,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use gio::{AppInfoExt, IconExt};
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use serde::Deserialize;
 use std::borrow::Borrow;
 use zbus::export::zvariant;
@@ -385,8 +385,10 @@ fn start_dbus_service_loop() -> Result<()> {
     }
 
     loop {
-        if let Err(err) = object_server.try_handle_next() {
-            error!("{}", err);
+        match object_server.try_handle_next() {
+            Ok(None) => debug!("Interface message processed"),
+            Ok(Some(message)) => warn!("Message not handled by interfaces: {:?}", message),
+            Err(err) => error!("{}", err),
         }
     }
 }
