@@ -14,12 +14,13 @@ use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use gio::{AppInfoExt, IconExt};
 use log::{debug, error, info, warn};
 use serde::Deserialize;
 use std::borrow::Borrow;
 use zbus::export::zvariant;
+use zbus::fdo::RequestNameReply;
 use zbus::{dbus_interface, fdo};
 
 #[derive(Debug, Deserialize)]
@@ -381,20 +382,29 @@ fn start_dbus_service_loop() -> Result<()> {
         }
     }
 
-    fdo::DBusProxy::new(&connection)?
-        .request_name(BUSNAME, fdo::RequestNameFlags::ReplaceExisting.into())
-        .with_context(|| "Failed to acquire bus name")?;
-
-    loop {
-        match object_server.try_handle_next() {
-            Ok(None) => debug!("Interface message processed"),
-            Ok(Some(message)) => warn!("Message not handled by interfaces: {:?}", message),
-            Err(err) => error!("{}", err),
+    info!("All providers registered, acquiring {}", BUSNAME);
+    let reply = fdo::DBusProxy::new(&connection)?
+        .request_name(BUSNAME, fdo::RequestNameFlags::DoNotQueue.into())
+        .with_context(|| format!("Request to acquire bus name {} failed", BUSNAME))?;
+    if reply == RequestNameReply::PrimaryOwner {
+        info!("Acquired name {}, handling incoming messages", BUSNAME);
+        loop {
+            match object_server.try_handle_next() {
+                Ok(None) => debug!("Interface message processed"),
+                Ok(Some(message)) => warn!("Message not handled by interfaces: {:?}", message),
+                Err(err) => error!("{}", err),
+            }
         }
+    } else {
+        Err(anyhow!(
+            "Failed to acquire {} as primary owner (reply from bus: {:?})",
+            BUSNAME,
+            reply
+        ))
     }
 }
 
-fn main() -> Result<()> {
+fn main() {
     use clap::*;
 
     let app = app_from_crate!()
@@ -418,7 +428,6 @@ Set $RUST_LOG to control the log level",
         for label in labels {
             println!("{}", label)
         }
-        Ok(())
     } else {
         env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
@@ -427,7 +436,10 @@ Set $RUST_LOG to control the log level",
             env!("CARGO_PKG_VERSION")
         );
 
-        start_dbus_service_loop()
+        if let Err(err) = start_dbus_service_loop() {
+            error!("Failed to start DBus event loop: {}", err);
+            std::process::exit(1);
+        }
     }
 }
 

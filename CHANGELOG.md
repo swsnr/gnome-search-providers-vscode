@@ -6,6 +6,10 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- Exit with failure if the bus name is already owned by another process.
+
 ## [1.0.0] – 2021-04-18
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
