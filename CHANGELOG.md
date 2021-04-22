@@ -9,6 +9,7 @@ and this project doesn't care about versioning.
 ### Added
 
 - Support AUR VSCode binary (see [GH-6], thanks [SantoJambit]).
+- Support for storage format of VSCode 1.55 (see [GH-5], thanks [SantoJambit])
 
 ### Fixed
 
@@ -17,6 +18,7 @@ and this project doesn't care about versioning.
 
 [SantoJambit]: https://github.com/SantoJambit
 [GH-4]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/4
+[GH-5]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/5
 [GH-6]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/6
 
 ## [1.0.0] – 2021-04-18

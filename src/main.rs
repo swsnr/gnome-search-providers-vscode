@@ -24,9 +24,19 @@ use zbus::fdo::RequestNameReply;
 use zbus::{dbus_interface, fdo};
 
 #[derive(Debug, Deserialize)]
+struct StorageOpenedPathsListEntry {
+    #[serde(rename = "folderUri")]
+    folder_uri: Option<String>,
+    #[serde(rename = "fileUri")]
+    file_uri: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
 struct StorageOpenedPathsList {
     /// Up to code 1.54
     workspaces3: Option<Vec<String>>,
+    /// From code 1.55
+    entries: Option<Vec<StorageOpenedPathsListEntry>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -35,19 +45,36 @@ struct Storage {
     opened_paths_list: Option<StorageOpenedPathsList>,
 }
 
-/// Read a VSCode storage.json from the given `reader`.
-fn read_storage<R: Read>(reader: R) -> Result<Storage> {
-    serde_json::from_reader(reader).map_err(Into::into)
-}
+impl Storage {
+    /// Read a VSCode storage.json from the given `reader`.
+    fn read<R: Read>(reader: R) -> Result<Self> {
+        serde_json::from_reader(reader).map_err(Into::into)
+    }
 
-/// Read the `storage.json` file in the given `config_dir`.
-fn read_storage_from_dir<P: AsRef<Path>>(config_dir: P) -> Result<Storage> {
-    let path = config_dir.as_ref().join("storage.json");
-    read_storage(
-        File::open(&path)
-            .with_context(|| format!("Failed to open {} for reading", path.display()))?,
-    )
-    .with_context(|| format!("Failed to parse storage from {}", path.display()))
+    /// Read the `storage.json` file in the given `config_dir`.
+    fn from_dir<P: AsRef<Path>>(config_dir: P) -> Result<Self> {
+        let path = config_dir.as_ref().join("storage.json");
+        Self::read(
+            File::open(&path)
+                .with_context(|| format!("Failed to open {} for reading", path.display()))?,
+        )
+        .with_context(|| format!("Failed to parse storage from {}", path.display()))
+    }
+
+    /// Move this storage into workspace URLs.
+    fn into_workspace_urls(self) -> Vec<String> {
+        if let Some(paths) = self.opened_paths_list {
+            let entries = paths.entries.unwrap_or_default();
+            let workspaces3 = paths.workspaces3.unwrap_or_default();
+            entries
+                .into_iter()
+                .filter_map(|entry| entry.folder_uri)
+                .chain(workspaces3.into_iter())
+                .collect()
+        } else {
+            Vec::new()
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -156,6 +183,27 @@ struct VscodeSearchProvider {
 }
 
 impl VscodeSearchProvider {
+    /// Add a workspace.
+    fn add_workspace(&mut self, url: String) -> Result<()> {
+        if let Some(name) = url.split('/').last() {
+            let id = format!(
+                "vscode-search-provider-{}-{}",
+                self.app.get_id().unwrap(),
+                &url
+            );
+            self.recent_workspaces.insert(
+                id,
+                RecentWorkspace {
+                    name: name.to_string(),
+                    url,
+                },
+            );
+            Ok(())
+        } else {
+            Err(anyhow!("Failed to extract workspace name from URL {}", url))
+        }
+    }
+
     /// Update recent workspaces.
     ///
     /// Clears the map of recent workspaces and reads the recent workspaces from storage again.
@@ -167,28 +215,13 @@ impl VscodeSearchProvider {
             self.app.get_id().unwrap()
         );
         self.recent_workspaces.clear();
-        let storage = read_storage_from_dir(&self.config_dir)?;
-        if let Some(workspaces3) = storage
-            .opened_paths_list
-            .and_then(|paths| paths.workspaces3)
-        {
-            for url in workspaces3 {
-                if let Some(name) = url.split('/').last() {
-                    let id = format!(
-                        "vscode-search-provider-{}-{}",
-                        self.app.get_id().unwrap(),
-                        &url
-                    );
-                    self.recent_workspaces.insert(
-                        id,
-                        RecentWorkspace {
-                            name: name.to_string(),
-                            url,
-                        },
-                    );
-                }
+        let urls = Storage::from_dir(&self.config_dir)?.into_workspace_urls();
+        for url in urls {
+            if let Err(error) = self.add_workspace(url) {
+                warn!("Skipping workspace: {}", error)
             }
         }
+
         info!(
             "Found {} workspace(s) for {}",
             self.recent_workspaces.len(),
@@ -454,12 +487,12 @@ Set $RUST_LOG to control the log level",
 
 #[cfg(test)]
 mod tests {
-    use crate::read_storage;
+    use crate::Storage;
 
     #[test]
     fn read_recent_workspaces_code_1_54() {
         let data: &[u8] = include_bytes!("tests/code_1_54_storage.json");
-        let storage = read_storage(data).unwrap();
+        let storage = Storage::read(data).unwrap();
         assert!(
             &storage.opened_paths_list.is_some(),
             "opened paths list missing"
@@ -474,10 +507,7 @@ mod tests {
             "workspaces3 missing"
         );
         assert_eq!(
-            storage
-                .opened_paths_list
-                .and_then(|p| p.workspaces3)
-                .unwrap(),
+            storage.into_workspace_urls(),
             vec![
                 "file:///home/foo//mdcat",
                 "file:///home/foo//gnome-jetbrains-search-provider",
@@ -485,6 +515,35 @@ mod tests {
                 "file:///home/foo//sbctl",
             ]
         )
+    }
+
+    #[test]
+    fn read_recent_workspaces_code_1_55() {
+        let data: &[u8] = include_bytes!("tests/code_1_55_storage.json");
+        let storage = Storage::read(data).unwrap();
+        assert!(
+            &storage.opened_paths_list.is_some(),
+            "opened paths list missing"
+        );
+        assert!(
+            &storage
+                .opened_paths_list
+                .as_ref()
+                .unwrap()
+                .entries
+                .is_some(),
+            "entries missing"
+        );
+
+        assert_eq!(
+            storage.into_workspace_urls(),
+            vec![
+                "file:///home/foo//mdcat",
+                "file:///home/foo//gnome-jetbrains-search-provider",
+                "file:///home/foo//gnome-shell",
+                "file:///home/foo//sbctl",
+            ]
+        );
     }
 
     mod search {
