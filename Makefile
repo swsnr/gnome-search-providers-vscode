@@ -10,13 +10,16 @@ SEARCH_PROVIDERS = $(wildcard providers/*.ini)
 .PHONY: build
 build:
 	cargo build --release
+	mkdir -p target/dbus-1 target/systemd
+	sed "s:{PREFIX}:$(PREFIX):g" "dbus-1/de.swsnr.searchprovider.VSCode.service" > "target/dbus-1/de.swsnr.searchprovider.VSCode.service"
+	sed "s:{PREFIX}:$(PREFIX):g" "systemd/de.swsnr.searchprovider.VSCode.service" > "target/systemd/de.swsnr.searchprovider.VSCode.service"
 
 .PHONY: install
 install:
 	install -Dm644 -t $(SEARCH_PROVIDERS_DIR) $(SEARCH_PROVIDERS)
 	install -Dm755 -t $(LIBDIR)/gnome-search-providers-vscode/ target/release/gnome-search-providers-vscode
-	install -Dm644 -t $(LIBDIR)/systemd/user/ systemd/de.swsnr.searchprovider.VSCode.service
-	install -Dm644 -t $(DATADIR)/dbus-1/services dbus-1/de.swsnr.searchprovider.VSCode.service
+	install -Dm644 -t $(LIBDIR)/systemd/user/ target/systemd/de.swsnr.searchprovider.VSCode.service
+	install -Dm644 -t $(DATADIR)/dbus-1/services target/dbus-1/de.swsnr.searchprovider.VSCode.service
 
 .PHONY: uninstall
 uninstall:
