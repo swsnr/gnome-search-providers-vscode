@@ -6,9 +6,18 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Added
+
+- Support AUR VSCode binary (see [GH-6], thanks [SantoJambit]).
+
 ### Fixed
 
 - Exit with failure if the bus name is already owned by another process.
+- Substitude prefix in service files (see [GH-4], thanks [SantoJambit]).
+
+[SantoJambit]: https://github.com/SantoJambit
+[GH-4]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/4
+[GH-6]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/6
 
 ## [1.0.0] – 2021-04-18
 
