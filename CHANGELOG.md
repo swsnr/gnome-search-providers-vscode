@@ -15,11 +15,13 @@ and this project doesn't care about versioning.
 
 - Exit with failure if the bus name is already owned by another process.
 - Substitude prefix in service files (see [GH-4], thanks [SantoJambit]).
+- Maintain order of workspaces in results (see [GH-7]).
 
 [SantoJambit]: https://github.com/SantoJambit
 [GH-4]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/4
 [GH-5]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/5
 [GH-6]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/6
+[GH-7]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/7
 
 ## [1.0.0] – 2021-04-18
 

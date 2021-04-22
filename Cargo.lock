@@ -533,6 +533,7 @@ dependencies = [
  "env_logger",
  "gio",
  "globwalk",
+ "indexmap",
  "log",
  "pretty_assertions",
  "rust-ini",
@@ -601,6 +602,16 @@ dependencies = [
  "thread_local",
  "walkdir",
  "winapi-util",
+]
+
+[[package]]
+name = "indexmap"
+version = "1.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "824845a0bf897a9042383849b02c1bc219c2383772efcd5c6f9766fa4b81aef3"
+dependencies = [
+ "autocfg",
+ "hashbrown",
 ]
 
 [[package]]

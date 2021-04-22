@@ -8,7 +8,6 @@
 
 //! Gnome search provider for VSCode editors.
 
-use std::collections::HashMap;
 use std::convert::TryInto;
 use std::fs::File;
 use std::io::Read;
@@ -16,9 +15,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use gio::{AppInfoExt, IconExt};
+use indexmap::map::IndexMap;
 use log::{debug, error, info, warn};
 use serde::Deserialize;
 use std::borrow::Borrow;
+use std::collections::HashMap;
 use zbus::export::zvariant;
 use zbus::fdo::RequestNameReply;
 use zbus::{dbus_interface, fdo};
@@ -177,7 +178,7 @@ struct VscodeSearchProvider {
     /// The app to launch for search results.
     app: gio::DesktopAppInfo,
     /// All known recents workspaces.
-    recent_workspaces: HashMap<String, RecentWorkspace>,
+    recent_workspaces: IndexMap<String, RecentWorkspace>,
     /// The configuration directory.
     config_dir: PathBuf,
 }
@@ -418,7 +419,7 @@ fn start_dbus_service_loop() -> Result<()> {
             let dbus_provider = VscodeSearchProvider {
                 config_dir: user_config_dir.join(provider.config.dirname),
                 app,
-                recent_workspaces: HashMap::new(),
+                recent_workspaces: IndexMap::new(),
             };
             object_server.at(&provider.objpath().try_into()?, dbus_provider)?;
         }
