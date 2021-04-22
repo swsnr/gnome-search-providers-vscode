@@ -9,7 +9,7 @@ SEARCH_PROVIDERS = $(wildcard providers/*.ini)
 
 .PHONY: build
 build:
-	cargo build --release
+	cargo build --release --locked
 	mkdir -p target/dbus-1 target/systemd
 	sed "s:{PREFIX}:$(PREFIX):g" "dbus-1/de.swsnr.searchprovider.VSCode.service" > "target/dbus-1/de.swsnr.searchprovider.VSCode.service"
 	sed "s:{PREFIX}:$(PREFIX):g" "systemd/de.swsnr.searchprovider.VSCode.service" > "target/systemd/de.swsnr.searchprovider.VSCode.service"
