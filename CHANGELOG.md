@@ -6,6 +6,11 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Fixed
+- Make sure to build before `make install` (see [GH-8]).
+
+[GH-8]: https://github.com/lunaryorn/gnome-search-providers-vscode/issues/8
+
 ## [1.1.0] – 2021-04-22
 
 ### Added
