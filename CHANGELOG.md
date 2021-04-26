@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.2.0] – 2021-04-26
+
 ### Changed
 
 - Improve order of matches (see [GH-2]):
@@ -44,7 +46,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/releases/tag/v1.0.0
