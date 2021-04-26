@@ -169,10 +169,7 @@ fn match_score<S: AsRef<str>>(workspace: &RecentWorkspace, terms: &[S]) -> f64 {
 /// For each workspace compute the score with `match_score`; discard workspaces with zero score,
 /// and return a list of workspaces IDs with non-zero score, ordered by score in descending order.
 /// For workspaces with equal score the order as in storage.json is preserved.
-fn find_matching_workspaces<'a, I, S, T, P>(
-    workspaces: I,
-    terms: &'a [S],
-) -> Vec<T>
+fn find_matching_workspaces<'a, I, S, T, P>(workspaces: I, terms: &'a [S]) -> Vec<T>
 where
     I: Iterator<Item = (T, P)> + 'a,
     P: Borrow<RecentWorkspace>,
@@ -639,7 +636,6 @@ mod tests {
             )];
             assert_eq!(do_match(&workspaces, &["Mdcat"]), ["foo"]);
         }
-
 
         #[test]
         fn matches_in_name_rank_higher() {
