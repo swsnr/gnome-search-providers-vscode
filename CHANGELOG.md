@@ -6,6 +6,14 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- Improve order of matches (see [GH-2]):
+    - Rank matches in the workspace name higher than matches in the path, and 
+    - rank URL matches by position of term in match (the more to the right the better the term matched the more specific segments of the URL).
+
+[GH-2]: https://github.com/lunaryorn/gnome-search-providers-vscode/issues/2
+
 ## [1.1.1] – 2021-04-23
 
 ### Fixed
