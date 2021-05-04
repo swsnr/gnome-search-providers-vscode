@@ -119,7 +119,7 @@ const PROVIDERS: &[ProviderDefinition] = &[
     },
     // The binary AUR package for visual studio code: https://aur.archlinux.org/packages/visual-studio-code-bin/
     ProviderDefinition {
-        label: "Visual Studio Code",
+        label: "Visual Studio Code (AUR package)",
         desktop_id: "visual-studio-code.desktop",
         relative_obj_path: "aur/visualstudiocode",
         config: ConfigLocation { dirname: "Code" },
