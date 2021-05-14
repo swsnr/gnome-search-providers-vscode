@@ -11,7 +11,6 @@
 use std::convert::TryInto;
 use std::fs::File;
 use std::io::Read;
-use std::os::unix::io::AsRawFd;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Error, Result};
@@ -211,56 +210,26 @@ fn register_search_providers(object_server: &mut zbus::ObjectServer) -> Result<(
 ///
 /// Register all providers whose underlying app is installed.
 fn start_dbus_service() -> Result<()> {
-    let context = glib::MainContext::default();
-    if !context.acquire() {
-        Err(anyhow!("Failed to acquire main context!"))
-    } else {
-        let mainloop = glib::MainLoop::new(Some(&context), false);
-        let connection =
-            zbus::Connection::new_session().with_context(|| "Failed to connect to session bus")?;
+    let connection =
+        zbus::Connection::new_session().with_context(|| "Failed to connect to session bus")?;
 
-        let mut object_server = zbus::ObjectServer::new(&connection);
-        register_search_providers(&mut object_server)?;
+    let mut object_server = zbus::ObjectServer::new(&connection);
+    register_search_providers(&mut object_server)?;
+    info!("All providers registered, acquiring {}", BUSNAME);
+    acquire_bus_name(&connection, BUSNAME)?;
+    info!("Acquired name {}, handling DBus events", BUSNAME);
 
-        info!("All providers registered, acquiring {}", BUSNAME);
-        acquire_bus_name(&connection, BUSNAME)?;
-        info!("Acquired name {}, handling DBus events", BUSNAME);
-
-        glib::source::unix_fd_add_local(
-            connection.as_raw_fd(),
-            glib::IOCondition::IN | glib::IOCondition::PRI,
-            move |_, condition| {
-                debug!("Connection entered IO condition {:?}", condition);
-                match object_server.try_handle_next() {
-                    Ok(None) => debug!("Interface message processed"),
-                    Ok(Some(message)) => warn!("Message not handled by interfaces: {:?}", message),
-                    Err(err) => error!("Failed to process message: {:#}", err),
-                };
-                glib::Continue(true)
-            },
-        );
-
-        glib::source::unix_signal_add(libc::SIGTERM, {
-            let l = mainloop.clone();
-            move || {
-                debug!("Terminated, quitting mainloop");
-                l.quit();
-                glib::Continue(false)
-            }
-        });
-
-        glib::source::unix_signal_add(libc::SIGINT, {
-            let l = mainloop.clone();
-            move || {
-                debug!("Interrupted, quitting mainloop");
-                l.quit();
-                glib::Continue(false)
-            }
-        });
-
-        mainloop.run();
-        Ok(())
-    }
+    mainloop::run_dbus_loop(connection, move |message| {
+        match object_server.dispatch_message(&message) {
+            Ok(true) => debug!("Message dispatched to object server: {:?} ", message),
+            Ok(false) => warn!("Message not handled by object server: {:?}", message),
+            Err(error) => error!(
+                "Failed to dispatch message {:?} on object server: {}",
+                message, error
+            ),
+        }
+    })
+    .map_err(Into::into)
 }
 
 fn main() {

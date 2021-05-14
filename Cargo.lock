@@ -493,10 +493,12 @@ dependencies = [
 [[package]]
 name = "gnome-search-provider-common"
 version = "0.1.0"
-source = "git+https://github.com/lunaryorn/gnome-search-providers-jetbrains.git?branch=main#cb44b43b2105659ca4e21fdf1cab737bf68bfb5a"
+source = "git+https://github.com/lunaryorn/gnome-search-providers-jetbrains.git?branch=main#733a564a45d0bec25bba077f4a0e32884fb73e71"
 dependencies = [
  "gio",
+ "glib",
  "indexmap",
+ "libc",
  "log",
  "thiserror",
  "zbus",
@@ -511,10 +513,8 @@ dependencies = [
  "dirs",
  "env_logger",
  "gio",
- "glib",
  "globwalk",
  "gnome-search-provider-common",
- "libc",
  "log",
  "pretty_assertions",
  "rust-ini",
