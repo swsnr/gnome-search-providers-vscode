@@ -15,14 +15,11 @@ use std::os::unix::io::AsRawFd;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Error, Result};
-use gio::{AppInfoExt, IconExt};
+use gio::AppInfoExt;
 use log::{debug, error, info, warn};
 use serde::Deserialize;
-use std::collections::HashMap;
-use zbus::export::zvariant;
-use zbus::fdo::RequestNameReply;
-use zbus::{dbus_interface, fdo};
 
+use gnome_search_provider_common::dbus::{acquire_bus_name, RecentItemSearchProvider};
 use gnome_search_provider_common::*;
 
 #[derive(Debug, Deserialize)]
@@ -176,181 +173,6 @@ impl ItemsSource<RecentFileSystemItem> for VscodeWorkspacesSource {
     }
 }
 
-/// A DBus search provider for a VSCode variant.
-struct VscodeSearchProvider {
-    /// The app to launch for search results.
-    app: gio::DesktopAppInfo,
-    /// Source for recent workspaces.
-    source: VscodeWorkspacesSource,
-    /// All known recents workspaces.
-    recent_workspaces: IdMap<RecentFileSystemItem>,
-}
-
-/// The DBus interface of the search provider.
-///
-/// See <https://developer.gnome.org/SearchProvider/> for information.
-#[dbus_interface(name = "org.gnome.Shell.SearchProvider2")]
-impl VscodeSearchProvider {
-    /// Starts a search.
-    ///
-    /// This function is called when a new search is started. It gets an array of search terms as arguments,
-    /// and should return an array of result IDs. gnome-shell will call GetResultMetas for (some) of these result
-    /// IDs to get details about the result that can be be displayed in the result list.
-    fn get_initial_result_set(&mut self, terms: Vec<String>) -> zbus::fdo::Result<Vec<String>> {
-        debug!(
-            "Searching for {:?} of {}",
-            terms,
-            self.app.get_id().unwrap()
-        );
-        self.recent_workspaces = self.source.find_recent_items().map_err(|error| {
-            error!(
-                "Failed to update recent workspaces for {} at {:?}: {}",
-                self.app.get_id().unwrap(),
-                self.source.config_dir.display(),
-                error
-            );
-            zbus::fdo::Error::Failed(format!(
-                "Failed to update recent workspaces for {}: {}",
-                self.app.get_id().unwrap(),
-                error
-            ))
-        })?;
-
-        let ids = find_matching_items(self.recent_workspaces.iter(), terms.as_slice())
-            .into_iter()
-            .map(String::to_owned)
-            .collect();
-        debug!("Found ids {:?} for {}", ids, self.app.get_id().unwrap());
-        Ok(ids)
-    }
-
-    /// Refine an ongoing search.
-    ///
-    /// This function is called to refine the initial search results when the user types more characters in the search entry.
-    /// It gets the previous search results and the current search terms as arguments, and should return an array of result IDs,
-    /// just like GetInitialResulSet.
-    fn get_subsearch_result_set(
-        &self,
-        previous_results: Vec<String>,
-        terms: Vec<String>,
-    ) -> Vec<String> {
-        debug!(
-            "Searching for {:?} in {:?} of {}",
-            terms,
-            previous_results,
-            self.app.get_id().unwrap()
-        );
-        let candidates = previous_results
-            .iter()
-            .filter_map(|id| self.recent_workspaces.get(id).map(|p| (id, p)));
-
-        let ids = find_matching_items(candidates, terms.as_slice())
-            .into_iter()
-            .map(String::to_owned)
-            .collect();
-        debug!("Found ids {:?} for {}", ids, self.app.get_id().unwrap());
-        ids
-    }
-
-    /// Get metadata for results.
-    ///
-    /// This function is called to obtain detailed information for results.
-    /// It gets an array of result IDs as arguments, and should return a matching array of dictionaries
-    /// (ie one a{sv} for each passed-in result ID).
-    ///
-    /// The following pieces of information should be provided for each result:
-    //
-    //  - "id": the result ID
-    //  - "name": the display name for the result
-    //  - "icon": a serialized GIcon (see g_icon_serialize()), or alternatively,
-    //  - "gicon": a textual representation of a GIcon (see g_icon_to_string()), or alternativly,
-    //  - "icon-data": a tuple of type (iiibiiay) describing a pixbuf with width, height, rowstride, has-alpha, bits-per-sample, and image data
-    //  - "description": an optional short description (1-2 lines)
-    fn get_result_metas(&self, results: Vec<String>) -> Vec<HashMap<String, zvariant::Value>> {
-        debug!("Getting meta info for {:?}", results);
-        results
-            .into_iter()
-            .filter_map(|id| {
-                self.recent_workspaces.get(&id).map(|workspace| {
-                    debug!("Compiling meta info for {}", id);
-                    let icon = IconExt::to_string(&self.app.get_icon().unwrap()).unwrap();
-                    debug!("Using icon {} for id {}", icon, id);
-
-                    let mut meta: HashMap<String, zvariant::Value> = HashMap::new();
-                    meta.insert("id".to_owned(), id.into());
-                    meta.insert("name".to_owned(), (&workspace.name).into());
-                    meta.insert("gicon".to_owned(), icon.to_string().into());
-                    meta.insert("description".to_owned(), workspace.path.to_string().into());
-                    meta
-                })
-            })
-            .collect()
-    }
-
-    /// Activate an individual result.
-    ///
-    /// This function is called when the user clicks on an individual result to open it in the application.
-    /// The arguments are the result ID, the current search terms and a timestamp.
-    ///
-    /// Launches the underlying Jetbrains app with the path to the selected project.
-    fn activate_result(
-        &self,
-        id: String,
-        terms: Vec<String>,
-        timestamp: u32,
-    ) -> zbus::fdo::Result<()> {
-        debug!("Activating result {} for {:?} at {}", id, terms, timestamp);
-        if let Some(workspace) = self.recent_workspaces.get(&id) {
-            info!("Launching recent workspace {:?}", workspace);
-            self.app
-                .launch_uris::<gio::AppLaunchContext>(&[&workspace.path], None)
-                .map_err(|error| {
-                    error!(
-                        "Failed to launch app {} for URL {}: {}",
-                        self.app.get_id().unwrap(),
-                        workspace.path,
-                        error
-                    );
-                    zbus::fdo::Error::SpawnFailed(format!(
-                        "Failed to launch app {} for URL {}: {}",
-                        self.app.get_id().unwrap(),
-                        workspace.path,
-                        error
-                    ))
-                })
-        } else {
-            error!("Project with ID {} not found", id);
-            Err(zbus::fdo::Error::Failed(format!("Result {} not found", id)))
-        }
-    }
-
-    /// Launch a search within the App.
-    ///
-    /// This function is called when the user clicks on the provider icon to display more search results in the application.
-    /// The arguments are the current search terms and a timestamp.
-    ///
-    /// We cannot remotely popup the project manager dialog of the underlying Jetbrains App; there's no such command line flag.
-    /// Hence we simply launch the app without any arguments to bring up the start screen if it's not yet running.
-    fn launch_search(&self, terms: Vec<String>, timestamp: u32) -> zbus::fdo::Result<()> {
-        debug!("Launching search for {:?} at {}", terms, timestamp);
-        info!("Launching app {} directly", self.app.get_id().unwrap());
-        self.app
-            .launch::<gio::AppLaunchContext>(&[], None)
-            .map_err(|error| {
-                error!(
-                    "Failed to launch app {}: {}",
-                    self.app.get_id().unwrap(),
-                    error
-                );
-                zbus::fdo::Error::SpawnFailed(format!(
-                    "Failed to launch app {}: {}",
-                    self.app.get_id().unwrap(),
-                    error
-                ))
-            })
-    }
-}
-
 /// The name to request on the bus.
 const BUSNAME: &str = "de.swsnr.searchprovider.VSCode";
 
@@ -374,33 +196,15 @@ fn register_search_providers(object_server: &mut zbus::ObjectServer) -> Result<(
                 provider.desktop_id,
                 provider.objpath()
             );
-            let dbus_provider = VscodeSearchProvider {
-                source: VscodeWorkspacesSource {
-                    app_id: app.get_id().unwrap().to_string(),
-                    config_dir: user_config_dir.join(provider.config.dirname),
-                },
-                app,
-                recent_workspaces: IndexMap::new(),
+            let source = VscodeWorkspacesSource {
+                app_id: app.get_id().unwrap().to_string(),
+                config_dir: user_config_dir.join(provider.config.dirname),
             };
+            let dbus_provider = RecentItemSearchProvider::new(app, source);
             object_server.at(&provider.objpath().try_into()?, dbus_provider)?;
         }
     }
     Ok(())
-}
-
-fn acquire_bus_name(connection: &zbus::Connection) -> Result<()> {
-    let reply = fdo::DBusProxy::new(&connection)?
-        .request_name(BUSNAME, fdo::RequestNameFlags::DoNotQueue.into())
-        .with_context(|| format!("Request to acquire name {} failed", BUSNAME))?;
-    if reply == RequestNameReply::PrimaryOwner {
-        Ok(())
-    } else {
-        Err(anyhow!(
-            "Failed to acquire bus name {} (reply from server: {:?})",
-            BUSNAME,
-            reply
-        ))
-    }
 }
 
 /// Starts the DBUS service loop.
@@ -419,7 +223,7 @@ fn start_dbus_service() -> Result<()> {
         register_search_providers(&mut object_server)?;
 
         info!("All providers registered, acquiring {}", BUSNAME);
-        acquire_bus_name(&connection)?;
+        acquire_bus_name(&connection, BUSNAME)?;
         info!("Acquired name {}, handling DBus events", BUSNAME);
 
         glib::source::unix_fd_add_local(

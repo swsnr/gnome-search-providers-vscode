@@ -14,7 +14,6 @@ edition = "2018"
 publish = false
 
 [dependencies]
-zbus = "^1.9"
 glib = "^0.10"
 gio = "^0.9"
 dirs = "3.0.1"
