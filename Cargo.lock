@@ -524,6 +524,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "gnome-search-provider-common"
+version = "0.1.0"
+source = "git+https://github.com/lunaryorn/gnome-search-providers-jetbrains.git?branch=main#cb44b43b2105659ca4e21fdf1cab737bf68bfb5a"
+dependencies = [
+ "gio",
+ "indexmap",
+ "log",
+ "thiserror",
+ "zbus",
+]
+
+[[package]]
 name = "gnome-search-providers-vscode"
 version = "1.2.0"
 dependencies = [
@@ -534,7 +546,7 @@ dependencies = [
  "gio",
  "glib",
  "globwalk",
- "indexmap",
+ "gnome-search-provider-common",
  "libc",
  "log",
  "pretty_assertions",
