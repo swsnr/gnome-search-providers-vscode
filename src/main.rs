@@ -194,7 +194,7 @@ fn register_search_providers(
                 config_dir: user_config_dir.join(provider.config.dirname),
             };
             let systemd = Systemd1ManagerProxy::new(&connection)
-                .with_context(|| format!("Failed to connect to systemd manager"))?;
+                .with_context(|| "Failed to connect to systemd manager")?;
             let dbus_provider = AppItemSearchProvider::new(app, source, systemd);
             object_server.at(provider.objpath().as_str(), dbus_provider)?;
         }
