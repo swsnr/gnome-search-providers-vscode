@@ -7,9 +7,13 @@ and this project doesn't care about versioning.
 ## [Unreleased]
 
 ### Changed
-- Run with the glib mainloop (see [GH-9]).
+- Use common code from [gnome-search-providers-jetbrains](https://github.com/lunaryorn/gnome-search-providers-jetbrains/tree/main/crates/common):
+  - The search provider now moves launched processes to new `app-gnome` systemd scopes, like Gnome itself does when starting applications
+  - The search provider now runs in a glib mainloop.
 
-[GH-9]: https://github.com/lunaryorn/gnome-search-providers-vscode/issues/9
+### Fixed
+- No longer quit application instances launched by the search provider when stopping the search provider service; the search provider now moves processes to new systemd scopes to prevent this.
+
 
 ## [1.2.0] – 2021-04-26
 

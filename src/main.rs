@@ -8,7 +8,6 @@
 
 //! Gnome search provider for VSCode editors.
 
-use std::convert::TryInto;
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -18,7 +17,8 @@ use gio::AppInfoExt;
 use log::{debug, error, info, warn};
 use serde::Deserialize;
 
-use gnome_search_provider_common::dbus::{acquire_bus_name, RecentItemSearchProvider};
+use gnome_search_provider_common::dbus::acquire_bus_name;
+use gnome_search_provider_common::systemd::Systemd1ManagerProxy;
 use gnome_search_provider_common::*;
 
 #[derive(Debug, Deserialize)]
@@ -132,11 +132,11 @@ struct RecentWorkspace {
     url: String,
 }
 
-fn recent_item(url: String) -> Result<RecentFileSystemItem> {
+fn recent_item(url: String) -> Result<AppLaunchItem> {
     if let Some(name) = url.split('/').last() {
-        Ok(RecentFileSystemItem {
+        Ok(AppLaunchItem {
             name: name.to_string(),
-            path: url,
+            target: AppLaunchTarget::Uri(url),
         })
     } else {
         Err(anyhow!("Failed to extract workspace name from URL {}", url))
@@ -149,17 +149,17 @@ struct VscodeWorkspacesSource {
     config_dir: PathBuf,
 }
 
-impl ItemsSource<RecentFileSystemItem> for VscodeWorkspacesSource {
+impl ItemsSource<AppLaunchItem> for VscodeWorkspacesSource {
     type Err = Error;
 
-    fn find_recent_items(&self) -> Result<IdMap<RecentFileSystemItem>, Self::Err> {
+    fn find_recent_items(&self) -> Result<IdMap<AppLaunchItem>, Self::Err> {
         let mut items = IndexMap::new();
         info!("Finding recent workspaces for {}", self.app_id);
         let urls = Storage::from_dir(&self.config_dir)?.into_workspace_urls();
         for url in urls {
+            let id = format!("vscode-search-provider-{}-{}", self.app_id, &url);
             match recent_item(url) {
                 Ok(item) => {
-                    let id = format!("vscode-search-provider-{}-{}", self.app_id, &item.path);
                     items.insert(id, item);
                 }
                 Err(err) => {
@@ -175,16 +175,10 @@ impl ItemsSource<RecentFileSystemItem> for VscodeWorkspacesSource {
 /// The name to request on the bus.
 const BUSNAME: &str = "de.swsnr.searchprovider.VSCode";
 
-/// Starts the DBUS service.
-///
-/// Connect to the session bus and register a new DBus object for every provider
-/// whose underlying app is installed.
-///
-/// Then register the connection on the Glib main loop and install a callback to
-/// handle incoming messages.
-///
-/// Return the connection and the source ID for the mainloop callback.
-fn register_search_providers(object_server: &mut zbus::ObjectServer) -> Result<()> {
+fn register_search_providers(
+    connection: &zbus::Connection,
+    object_server: &mut zbus::ObjectServer,
+) -> Result<()> {
     let user_config_dir =
         dirs::config_dir().with_context(|| "No configuration directory for current user!")?;
 
@@ -199,8 +193,10 @@ fn register_search_providers(object_server: &mut zbus::ObjectServer) -> Result<(
                 app_id: app.get_id().unwrap().to_string(),
                 config_dir: user_config_dir.join(provider.config.dirname),
             };
-            let dbus_provider = RecentItemSearchProvider::new(app, source);
-            object_server.at(&provider.objpath().try_into()?, dbus_provider)?;
+            let systemd = Systemd1ManagerProxy::new(&connection)
+                .with_context(|| format!("Failed to connect to systemd manager"))?;
+            let dbus_provider = AppItemSearchProvider::new(app, source, systemd);
+            object_server.at(provider.objpath().as_str(), dbus_provider)?;
         }
     }
     Ok(())
@@ -214,7 +210,7 @@ fn start_dbus_service() -> Result<()> {
         zbus::Connection::new_session().with_context(|| "Failed to connect to session bus")?;
 
     let mut object_server = zbus::ObjectServer::new(&connection);
-    register_search_providers(&mut object_server)?;
+    register_search_providers(&connection, &mut object_server)?;
     info!("All providers registered, acquiring {}", BUSNAME);
     acquire_bus_name(&connection, BUSNAME)?;
     info!("Acquired name {}, handling DBus events", BUSNAME);
