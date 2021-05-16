@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.3.0] – 2021-05-16
+
 ### Changed
 - Use common code from [gnome-search-providers-jetbrains](https://github.com/lunaryorn/gnome-search-providers-jetbrains/tree/main/crates/common):
   - The search provider now moves launched processes to new `app-gnome` systemd scopes, like Gnome itself does when starting applications
@@ -13,7 +15,6 @@ and this project doesn't care about versioning.
 
 ### Fixed
 - No longer quit application instances launched by the search provider when stopping the search provider service; the search provider now moves processes to new systemd scopes to prevent this.
-
 
 ## [1.2.0] – 2021-04-26
 
@@ -55,7 +56,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.0.0...v1.1.0
