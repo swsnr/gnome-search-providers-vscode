@@ -17,9 +17,13 @@ use gio::AppInfoExt;
 use log::{debug, error, info, warn};
 use serde::Deserialize;
 
+use gnome_search_provider_common::app::*;
 use gnome_search_provider_common::dbus::acquire_bus_name;
+use gnome_search_provider_common::export::zbus;
+use gnome_search_provider_common::mainloop::run_dbus_loop;
+use gnome_search_provider_common::matching::*;
 use gnome_search_provider_common::systemd::Systemd1ManagerProxy;
-use gnome_search_provider_common::*;
+use gnome_search_provider_common::util::*;
 
 #[derive(Debug, Deserialize)]
 struct StorageOpenedPathsListEntry {
@@ -215,7 +219,7 @@ fn start_dbus_service() -> Result<()> {
     acquire_bus_name(&connection, BUSNAME)?;
     info!("Acquired name {}, handling DBus events", BUSNAME);
 
-    mainloop::run_dbus_loop(connection, move |message| {
+    run_dbus_loop(connection, move |message| {
         match object_server.dispatch_message(&message) {
             Ok(true) => debug!("Message dispatched to object server: {:?} ", message),
             Ok(false) => warn!("Message not handled by object server: {:?}", message),
@@ -244,6 +248,11 @@ Set $RUST_LOG to control the log level",
             Arg::with_name("providers")
                 .long("--providers")
                 .help("List all providers"),
+        )
+        .arg(
+            Arg::with_name("journal_log")
+                .long("--journal-log")
+                .help("Directly log to the systemd journal instead of stdout"),
         );
     let matches = app.get_matches();
     if matches.is_present("providers") {
@@ -255,8 +264,15 @@ Set $RUST_LOG to control the log level",
     } else {
         env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
+        setup_logging(if matches.is_present("journal_log") {
+            LogDestination::Journal
+        } else {
+            LogDestination::Stdout
+        });
+
         info!(
-            "Started jetbrains search provider version: {}",
+            "Started {} version: {}",
+            env!("CARGO_BIN_NAME"),
             env!("CARGO_PKG_VERSION")
         );
 
