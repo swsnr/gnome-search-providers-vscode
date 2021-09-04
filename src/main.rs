@@ -13,7 +13,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Error, Result};
-use log::{error, info, warn};
+use log::{error, info, trace, warn};
 use serde::Deserialize;
 
 use gnome_search_provider_common::app::*;
@@ -57,6 +57,7 @@ impl Storage {
     /// Read the `storage.json` file in the given `config_dir`.
     fn from_dir<P: AsRef<Path>>(config_dir: P) -> Result<Self> {
         let path = config_dir.as_ref().join("storage.json");
+        trace!("Reading storage from {}", path.display());
         Self::read(
             File::open(&path)
                 .with_context(|| format!("Failed to open {} for reading", path.display()))?,
@@ -66,6 +67,7 @@ impl Storage {
 
     /// Move this storage into workspace URLs.
     fn into_workspace_urls(self) -> Vec<String> {
+        trace!("Extracting workspace URLs from {:?}", self);
         if let Some(paths) = self.opened_paths_list {
             let entries = paths.entries.unwrap_or_default();
             let workspaces3 = paths.workspaces3.unwrap_or_default();
@@ -139,10 +141,12 @@ struct RecentWorkspace {
 
 fn recent_item(url: String) -> Result<AppLaunchItem> {
     if let Some(name) = url.split('/').last() {
-        Ok(AppLaunchItem {
+        let item = AppLaunchItem {
             name: name.to_string(),
             target: AppLaunchTarget::Uri(url),
-        })
+        };
+        trace!("Found recent workspace item {:?}", item);
+        Ok(item)
     } else {
         Err(anyhow!("Failed to extract workspace name from URL {}", url))
     }
@@ -162,6 +166,7 @@ impl ItemsSource<AppLaunchItem> for VscodeWorkspacesSource {
         info!("Finding recent workspaces for {}", self.app_id);
         let urls = Storage::from_dir(&self.config_dir)?.into_workspace_urls();
         for url in urls {
+            trace!("Discovered workspace url {}", url);
             let id = format!("vscode-search-provider-{}-{}", self.app_id, &url);
             match recent_item(url) {
                 Ok(item) => {
