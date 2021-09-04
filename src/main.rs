@@ -13,17 +13,18 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Error, Result};
-use gio::AppInfoExt;
-use log::{debug, error, info, warn};
+use log::{error, info, warn};
 use serde::Deserialize;
 
 use gnome_search_provider_common::app::*;
-use gnome_search_provider_common::dbus::acquire_bus_name;
+use gnome_search_provider_common::dbus::run_server;
+use gnome_search_provider_common::export::gio;
+use gnome_search_provider_common::export::gio::glib;
 use gnome_search_provider_common::export::zbus;
-use gnome_search_provider_common::mainloop::run_dbus_loop;
+use gnome_search_provider_common::log::*;
+use gnome_search_provider_common::mainloop::*;
 use gnome_search_provider_common::matching::*;
 use gnome_search_provider_common::systemd::Systemd1ManagerProxy;
-use gnome_search_provider_common::util::*;
 
 #[derive(Debug, Deserialize)]
 struct StorageOpenedPathsListEntry {
@@ -193,13 +194,20 @@ fn register_search_providers(
                 provider.desktop_id,
                 provider.objpath()
             );
-            let source = VscodeWorkspacesSource {
-                app_id: app.get_id().unwrap().to_string(),
-                config_dir: user_config_dir.join(provider.config.dirname),
-            };
-            let systemd = Systemd1ManagerProxy::new(&connection)
-                .with_context(|| "Failed to connect to systemd manager")?;
-            let dbus_provider = AppItemSearchProvider::new(app, source, systemd);
+            let dbus_provider = AppItemSearchProvider::new(
+                app,
+                VscodeWorkspacesSource {
+                    app_id: provider.desktop_id.to_string(),
+                    config_dir: user_config_dir.join(provider.config.dirname),
+                },
+                Systemd1ManagerProxy::new(&connection)
+                    .with_context(|| "Failed to connect to systemd manager")?,
+                SystemdScopeSettings {
+                    prefix: concat!("app-", env!("CARGO_BIN_NAME")).to_string(),
+                    started_by: env!("CARGO_BIN_NAME").to_string(),
+                    documentation: vec![env!("CARGO_PKG_HOMEPAGE").to_string()],
+                },
+            );
             object_server.at(provider.objpath().as_str(), dbus_provider)?;
         }
     }
@@ -210,26 +218,22 @@ fn register_search_providers(
 ///
 /// Register all providers whose underlying app is installed.
 fn start_dbus_service() -> Result<()> {
+    let mainloop = create_main_loop();
+    let context = glib::MainContext::ref_thread_default();
+
     let connection =
-        zbus::Connection::new_session().with_context(|| "Failed to connect to session bus")?;
+        zbus::Connection::session().with_context(|| "Failed to connect to session bus")?;
 
     let mut object_server = zbus::ObjectServer::new(&connection);
     register_search_providers(&connection, &mut object_server)?;
     info!("All providers registered, acquiring {}", BUSNAME);
-    acquire_bus_name(&connection, BUSNAME)?;
-    info!("Acquired name {}, handling DBus events", BUSNAME);
+    let object_server = object_server.request_name(BUSNAME)?;
+    info!("Acquired name {}, starting server and main loop", BUSNAME);
 
-    run_dbus_loop(connection, move |message| {
-        match object_server.dispatch_message(&message) {
-            Ok(true) => debug!("Message dispatched to object server: {:?} ", message),
-            Ok(false) => warn!("Message not handled by object server: {:?}", message),
-            Err(error) => error!(
-                "Failed to dispatch message {:?} on object server: {}",
-                message, error
-            ),
-        }
-    })
-    .map_err(Into::into)
+    context.spawn_local(run_server(connection.inner().clone(), object_server));
+
+    mainloop.run();
+    Ok(())
 }
 
 fn main() {
@@ -262,13 +266,7 @@ Set $RUST_LOG to control the log level",
             println!("{}", label)
         }
     } else {
-        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
-
-        setup_logging(if matches.is_present("journal_log") {
-            LogDestination::Journal
-        } else {
-            LogDestination::Stdout
-        });
+        setup_logging_for_service(env!("CARGO_PKG_VERSION"));
 
         info!(
             "Started {} version: {}",
