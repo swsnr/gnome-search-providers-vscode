@@ -537,6 +537,7 @@ dependencies = [
  "glib-sys",
  "gobject-sys",
  "libc",
+ "log",
  "once_cell",
  "smallvec",
 ]
@@ -593,11 +594,12 @@ dependencies = [
 [[package]]
 name = "gnome-search-provider-common"
 version = "0.1.0"
-source = "git+https://github.com/lunaryorn/gnome-search-providers-jetbrains.git?branch=async#4e5663350256055c5318a55f3de7503d0e42f11e"
+source = "git+https://github.com/lunaryorn/gnome-search-providers-jetbrains.git?branch=async#b4ead6bb9fb1051fc0aa389424098cb053899626"
 dependencies = [
  "env_logger",
  "futures-util",
  "gio",
+ "glib",
  "indexmap",
  "libc",
  "libsystemd",

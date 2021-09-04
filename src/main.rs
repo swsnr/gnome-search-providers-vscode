@@ -24,7 +24,6 @@ use gnome_search_provider_common::export::zbus;
 use gnome_search_provider_common::log::*;
 use gnome_search_provider_common::mainloop::*;
 use gnome_search_provider_common::matching::*;
-use gnome_search_provider_common::systemd::Systemd1ManagerProxy;
 
 #[derive(Debug, Deserialize)]
 struct StorageOpenedPathsListEntry {
@@ -191,6 +190,14 @@ fn register_search_providers(
 ) -> Result<()> {
     let user_config_dir =
         dirs::config_dir().with_context(|| "No configuration directory for current user!")?;
+    let launch_context = create_launch_context(
+        connection.clone(),
+        SystemdScopeSettings {
+            prefix: concat!("app-", env!("CARGO_BIN_NAME")).to_string(),
+            started_by: env!("CARGO_BIN_NAME").to_string(),
+            documentation: vec![env!("CARGO_PKG_HOMEPAGE").to_string()],
+        },
+    );
 
     for provider in PROVIDERS {
         if let Some(app) = gio::DesktopAppInfo::new(provider.desktop_id) {
@@ -205,13 +212,7 @@ fn register_search_providers(
                     app_id: provider.desktop_id.to_string(),
                     config_dir: user_config_dir.join(provider.config.dirname),
                 },
-                Systemd1ManagerProxy::new(&connection)
-                    .with_context(|| "Failed to connect to systemd manager")?,
-                SystemdScopeSettings {
-                    prefix: concat!("app-", env!("CARGO_BIN_NAME")).to_string(),
-                    started_by: env!("CARGO_BIN_NAME").to_string(),
-                    documentation: vec![env!("CARGO_PKG_HOMEPAGE").to_string()],
-                },
+                launch_context.clone(),
             );
             object_server.at(provider.objpath().as_str(), dbus_provider)?;
         }
