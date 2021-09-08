@@ -114,6 +114,7 @@ impl ProviderDefinition<'_> {
 /// The object path must be unique for each desktop ID, to ensure that this service always
 /// launches the right application associated with the search provider.
 const PROVIDERS: &[ProviderDefinition] = &[
+    // The standard Arch Linux code package from community
     ProviderDefinition {
         label: "Code OSS (Arch Linux)",
         desktop_id: "code-oss.desktop",
@@ -128,6 +129,16 @@ const PROVIDERS: &[ProviderDefinition] = &[
         desktop_id: "visual-studio-code.desktop",
         relative_obj_path: "aur/visualstudiocode",
         config: ConfigLocation { dirname: "Code" },
+    },
+    // The binary AUR package for vscodium: https://aur.archlinux.org/packages/vscodium-bin
+    // and likely other VSCodium packages as well, the Desktop file seems to be fairly standard
+    ProviderDefinition {
+        label: "VSCodium",
+        desktop_id: "VSCodium.desktop",
+        relative_obj_path: "vscodium",
+        config: ConfigLocation {
+            dirname: "VSCodium",
+        },
     },
 ];
 
