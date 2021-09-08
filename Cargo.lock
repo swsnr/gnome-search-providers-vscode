@@ -594,7 +594,7 @@ dependencies = [
 [[package]]
 name = "gnome-search-provider-common"
 version = "0.1.0"
-source = "git+https://github.com/lunaryorn/gnome-search-providers-jetbrains.git?branch=async#b4ead6bb9fb1051fc0aa389424098cb053899626"
+source = "git+https://github.com/lunaryorn/gnome-search-providers-jetbrains.git?tag=v1.7.1#1f2003e509a0ab7adb7b256d46edc26f662ac189"
 dependencies = [
  "env_logger",
  "futures-util",

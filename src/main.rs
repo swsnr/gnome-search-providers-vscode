@@ -8,6 +8,7 @@
 
 //! Gnome search provider for VSCode editors.
 
+use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -17,10 +18,11 @@ use log::{error, info, trace, warn};
 use serde::Deserialize;
 
 use gnome_search_provider_common::app::*;
-use gnome_search_provider_common::dbus::run_server;
+use gnome_search_provider_common::dbus::*;
 use gnome_search_provider_common::export::gio;
 use gnome_search_provider_common::export::gio::glib;
 use gnome_search_provider_common::export::zbus;
+use gnome_search_provider_common::export::zbus::export::names::WellKnownName;
 use gnome_search_provider_common::log::*;
 use gnome_search_provider_common::mainloop::*;
 use gnome_search_provider_common::matching::*;
@@ -233,7 +235,13 @@ fn start_dbus_service() -> Result<()> {
     let mut object_server = zbus::ObjectServer::new(&connection);
     register_search_providers(&connection, &mut object_server)?;
     info!("All providers registered, acquiring {}", BUSNAME);
-    let object_server = object_server.request_name(BUSNAME)?;
+    context
+        .block_on(request_name_exclusive(
+            connection.inner(),
+            WellKnownName::try_from(BUSNAME).unwrap(),
+        ))
+        .with_context(|| format!("Failed to request {}", BUSNAME))?;
+
     info!("Acquired name {}, starting server and main loop", BUSNAME);
 
     context.spawn_local(run_server(connection.inner().clone(), object_server));

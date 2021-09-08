@@ -6,11 +6,6 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
-### Added
-- Enable debug logging if `$LOG_DEBUG` is set.
-- Add `--journal-log` to log directly to the systemd journal; this adds a dependency on the `systemd` crate and, by implication, libsystemd.
-  Consequently this program no longer builds if systemd is not installed.
-
 ### Changed
 - The systemd service now logs directly to the systemd journal; this improves representation of log levels in logging.
 
