@@ -6,8 +6,13 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Added
+- Add support for VSCodium (see [GH-12]).
+
 ### Changed
 - The systemd service now logs directly to the systemd journal; this improves representation of log levels in logging.
+
+[GH-12]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/12
 
 ## [1.3.0] – 2021-05-16
 
