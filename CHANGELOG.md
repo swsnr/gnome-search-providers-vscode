@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.4.0] – 2021-09-08
+
 ### Added
 - Add support for VSCodium (see [GH-12]).
 
@@ -29,7 +31,7 @@ and this project doesn't care about versioning.
 ### Changed
 
 - Improve order of matches (see [GH-2]):
-    - Rank matches in the workspace name higher than matches in the path, and 
+    - Rank matches in the workspace name higher than matches in the path, and
     - rank URL matches by position of term in match (the more to the right the better the term matched the more specific segments of the URL).
 
 [GH-2]: https://github.com/lunaryorn/gnome-search-providers-vscode/issues/2
@@ -64,7 +66,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.1.0...v1.1.1
