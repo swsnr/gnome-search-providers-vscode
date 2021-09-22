@@ -6,6 +6,11 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Added
+- Add support for general Linux codium (see [GH-13]).
+
+[GH-13]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/13
+
 ## [1.4.0] – 2021-09-08
 
 ### Added
