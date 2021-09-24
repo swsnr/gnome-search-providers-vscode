@@ -140,6 +140,16 @@ const PROVIDERS: &[ProviderDefinition] = &[
             dirname: "VSCodium",
         },
     },
+    // The standard codium package on Linux from here: https://github.com/VSCodium/vscodium.
+    // Should work for most Linux distributions packaged from here.
+    ProviderDefinition {
+        label: "VSCodium",
+        desktop_id: "codium.desktop",
+        relative_obj_path: "codium",
+        config: ConfigLocation {
+            dirname: "VSCodium",
+        },
+    },
 ];
 
 /// A recent workspace of a VSCode variant.
