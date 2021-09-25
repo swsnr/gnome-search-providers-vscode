@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.5.0] – 2021-09-25
+
 ### Added
 - Add support for general Linux codium (see [GH-13]).
 
@@ -71,7 +73,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.1.1...v1.2.0
