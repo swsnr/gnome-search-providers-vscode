@@ -6,6 +6,11 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Added
+- Add support for multi-root workspaces, a.k.a. `.code-workspace` files (see [GH-15]).
+
+[GH-15]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/15
+
 ## [1.5.0] – 2021-09-25
 
 ### Added

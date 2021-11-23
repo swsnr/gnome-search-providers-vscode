@@ -28,8 +28,18 @@ use gnome_search_provider_common::mainloop::*;
 use gnome_search_provider_common::matching::*;
 
 #[derive(Debug, Deserialize)]
+struct WorkspaceEntry {
+    id: String,
+    #[serde(rename = "configPath")]
+    config_path: String,
+}
+
+#[derive(Debug, Deserialize)]
 #[serde(untagged)]
 enum StorageOpenedPathsListEntry {
+    Workspace {
+        workspace: WorkspaceEntry,
+    },
     Folder {
         #[serde(rename = "folderUri")]
         uri: String,
@@ -41,6 +51,7 @@ impl StorageOpenedPathsListEntry {
     /// Move this entry into a workspace URL.
     fn into_workspace_url(self) -> Option<String> {
         match self {
+            Self::Workspace { workspace } => Some(workspace.config_path),
             Self::Folder { uri } => Some(uri),
             Self::Other(_) => None,
         }
@@ -381,6 +392,7 @@ mod tests {
         assert_eq!(
             storage.into_workspace_urls(),
             vec![
+                "file:///home/foo//workspace.code-workspace",
                 "file:///home/foo//mdcat",
                 "file:///home/foo//gnome-jetbrains-search-provider",
                 "file:///home/foo//gnome-shell",
