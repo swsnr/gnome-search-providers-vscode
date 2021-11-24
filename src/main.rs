@@ -28,11 +28,34 @@ use gnome_search_provider_common::mainloop::*;
 use gnome_search_provider_common::matching::*;
 
 #[derive(Debug, Deserialize)]
-struct StorageOpenedPathsListEntry {
-    #[serde(rename = "folderUri")]
-    folder_uri: Option<String>,
-    #[serde(rename = "fileUri")]
-    file_uri: Option<String>,
+struct WorkspaceEntry {
+    id: String,
+    #[serde(rename = "configPath")]
+    config_path: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum StorageOpenedPathsListEntry {
+    Workspace {
+        workspace: WorkspaceEntry,
+    },
+    Folder {
+        #[serde(rename = "folderUri")]
+        uri: String,
+    },
+    Other(serde_json::Value),
+}
+
+impl StorageOpenedPathsListEntry {
+    /// Move this entry into a workspace URL.
+    fn into_workspace_url(self) -> Option<String> {
+        match self {
+            Self::Workspace { workspace } => Some(workspace.config_path),
+            Self::Folder { uri } => Some(uri),
+            Self::Other(_) => None,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -74,7 +97,7 @@ impl Storage {
             let workspaces3 = paths.workspaces3.unwrap_or_default();
             entries
                 .into_iter()
-                .filter_map(|entry| entry.folder_uri)
+                .filter_map(|entry| entry.into_workspace_url())
                 .chain(workspaces3.into_iter())
                 .collect()
         } else {
@@ -369,6 +392,7 @@ mod tests {
         assert_eq!(
             storage.into_workspace_urls(),
             vec![
+                "file:///home/foo//workspace.code-workspace",
                 "file:///home/foo//mdcat",
                 "file:///home/foo//gnome-jetbrains-search-provider",
                 "file:///home/foo//gnome-shell",

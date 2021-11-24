@@ -3,6 +3,12 @@
   "openedPathsList": {
     "entries": [
       {
+        "workspace": {
+          "id": "0123456789abcdef0123456789abcdef",
+          "configPath": "file:///home/foo//workspace.code-workspace"
+        }
+      },
+      {
           "folderUri": "file:///home/foo//mdcat"
       },
       {
