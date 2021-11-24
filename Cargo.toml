@@ -38,4 +38,4 @@ pre-release-replacements = [
     { file="CHANGELOG.md", search="HEAD", replace = "{{tag_name}}", exactly = 1 },
     { file="CHANGELOG.md", search="\\[Unreleased\\]: ", replace = "[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/{{tag_name}}...HEAD\n[{{version}}]: ", exactly = 1 },
 ]
-disable-publish = true
+publish = false
