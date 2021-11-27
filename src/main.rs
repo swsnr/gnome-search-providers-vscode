@@ -14,18 +14,20 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Error, Result};
+use async_trait::async_trait;
 use log::{error, info, trace, warn};
 use serde::Deserialize;
 
 use gnome_search_provider_common::app::*;
 use gnome_search_provider_common::dbus::*;
-use gnome_search_provider_common::export::gio;
-use gnome_search_provider_common::export::gio::glib;
-use gnome_search_provider_common::export::zbus;
-use gnome_search_provider_common::export::zbus::export::names::WellKnownName;
+use gnome_search_provider_common::gio;
+use gnome_search_provider_common::gio::glib;
 use gnome_search_provider_common::log::*;
 use gnome_search_provider_common::mainloop::*;
 use gnome_search_provider_common::matching::*;
+use gnome_search_provider_common::source::{AsyncItemsSource, IdMap};
+use gnome_search_provider_common::zbus;
+use gnome_search_provider_common::zbus::names::WellKnownName;
 
 #[derive(Debug, Deserialize)]
 struct StorageOpenedPathsListEntry {
@@ -165,7 +167,7 @@ fn recent_item(url: String) -> Result<AppLaunchItem> {
     if let Some(name) = url.split('/').last() {
         let item = AppLaunchItem {
             name: name.to_string(),
-            target: AppLaunchTarget::Uri(url),
+            uri: url,
         };
         trace!("Found recent workspace item {:?}", item);
         Ok(item)
@@ -175,15 +177,16 @@ fn recent_item(url: String) -> Result<AppLaunchItem> {
 }
 
 struct VscodeWorkspacesSource {
-    app_id: String,
+    app_id: AppId,
     /// The configuration directory.
     config_dir: PathBuf,
 }
 
-impl ItemsSource<AppLaunchItem> for VscodeWorkspacesSource {
+#[async_trait]
+impl AsyncItemsSource<AppLaunchItem> for VscodeWorkspacesSource {
     type Err = Error;
 
-    fn find_recent_items(&self) -> Result<IdMap<AppLaunchItem>, Self::Err> {
+    async fn find_recent_items(&self) -> Result<IdMap<AppLaunchItem>, Self::Err> {
         let mut items = IndexMap::new();
         info!("Finding recent workspaces for {}", self.app_id);
         let urls = Storage::from_dir(&self.config_dir)?.into_workspace_urls();
@@ -207,21 +210,12 @@ impl ItemsSource<AppLaunchItem> for VscodeWorkspacesSource {
 /// The name to request on the bus.
 const BUSNAME: &str = "de.swsnr.searchprovider.VSCode";
 
-fn register_search_providers(
+async fn register_search_providers(
     connection: &zbus::Connection,
-    object_server: &mut zbus::ObjectServer,
+    launch_service: &AppLaunchService,
 ) -> Result<()> {
-    let user_config_dir =
-        dirs::config_dir().with_context(|| "No configuration directory for current user!")?;
-    let launch_context = create_launch_context(
-        connection.clone(),
-        SystemdScopeSettings {
-            prefix: concat!("app-", env!("CARGO_BIN_NAME")).to_string(),
-            started_by: env!("CARGO_BIN_NAME").to_string(),
-            documentation: vec![env!("CARGO_PKG_HOMEPAGE").to_string()],
-        },
-    );
-
+    let user_config_dir = glib::user_config_dir();
+    let mut object_server = connection.object_server_mut().await;
     for provider in PROVIDERS {
         if let Some(app) = gio::DesktopAppInfo::new(provider.desktop_id) {
             info!(
@@ -230,12 +224,12 @@ fn register_search_providers(
                 provider.objpath()
             );
             let dbus_provider = AppItemSearchProvider::new(
-                app,
+                app.into(),
                 VscodeWorkspacesSource {
-                    app_id: provider.desktop_id.to_string(),
+                    app_id: provider.desktop_id.into(),
                     config_dir: user_config_dir.join(provider.config.dirname),
                 },
-                launch_context.clone(),
+                launch_service.client(),
             );
             object_server.at(provider.objpath().as_str(), dbus_provider)?;
         }
@@ -243,31 +237,48 @@ fn register_search_providers(
     Ok(())
 }
 
+async fn tick(connection: zbus::Connection) {
+    loop {
+        connection.executor().tick().await
+    }
+}
+
 /// Starts the DBUS service loop.
 ///
-/// Register all providers whose underlying app is installed.
-fn start_dbus_service() -> Result<()> {
-    let mainloop = create_main_loop();
-    let context = glib::MainContext::ref_thread_default();
+/// Connect to the ession bus and register DBus objects for every provider
+/// whose underlying VSCode variant is installed.
+///
+/// Then register the connection on the Glib main loop and handle incoming messages.
+async fn start_dbus_service() -> Result<()> {
+    let connection = zbus::ConnectionBuilder::session()?
+        // We run on the glib mainloop, and avoid the separate thread
+        .internal_executor(false)
+        .build()
+        .await
+        .with_context(|| "Failed to connect to session bus")?;
 
-    let connection =
-        zbus::Connection::session().with_context(|| "Failed to connect to session bus")?;
+    glib::MainContext::ref_thread_default().spawn(tick(connection.clone()));
 
-    let mut object_server = zbus::ObjectServer::new(&connection);
-    register_search_providers(&connection, &mut object_server)?;
+    info!("Registering all search providers");
+    let launch_service = AppLaunchService::new(
+        &glib::MainContext::ref_thread_default(),
+        connection.clone(),
+        SystemdScopeSettings {
+            prefix: concat!("app-", env!("CARGO_BIN_NAME")).to_string(),
+            started_by: env!("CARGO_BIN_NAME").to_string(),
+            documentation: vec![env!("CARGO_PKG_HOMEPAGE").to_string()],
+        },
+    );
+    register_search_providers(&connection, &launch_service).await?;
+
     info!("All providers registered, acquiring {}", BUSNAME);
-    context
-        .block_on(request_name_exclusive(
-            connection.inner(),
-            WellKnownName::try_from(BUSNAME).unwrap(),
-        ))
+    // Work around https://gitlab.freedesktop.org/dbus/zbus/-/issues/199,
+    // remove once https://gitlab.freedesktop.org/dbus/zbus/-/merge_requests/414 is merged and released
+    request_name_exclusive(&connection, WellKnownName::try_from(BUSNAME).unwrap())
+        .await
         .with_context(|| format!("Failed to request {}", BUSNAME))?;
 
-    info!("Acquired name {}, starting server and main loop", BUSNAME);
-
-    context.spawn_local(run_server(connection.inner().clone(), object_server));
-
-    mainloop.run();
+    info!("Acquired name {}, serving search providers", BUSNAME);
     Ok(())
 }
 
@@ -309,9 +320,15 @@ Set $RUST_LOG to control the log level",
             env!("CARGO_PKG_VERSION")
         );
 
-        if let Err(err) = start_dbus_service() {
-            error!("Failed to start DBus event loop: {}", err);
+        trace!("Acquire main context");
+        let context = glib::MainContext::default();
+        context.push_thread_default();
+
+        if let Err(error) = context.block_on(start_dbus_service()) {
+            error!("Failed to start DBus server: {}", error);
             std::process::exit(1);
+        } else {
+            create_main_loop(&context).run();
         }
     }
 }

@@ -601,6 +601,7 @@ name = "gnome-search-providers-vscode"
 version = "1.5.1-alpha.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "clap",
  "globwalk",
  "gnome-search-provider-common",
