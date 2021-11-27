@@ -12,6 +12,9 @@ and this project doesn't care about versioning.
 ### Changed
 - Use async IO.
 
+### Removed
+- Dedicated AUR package support for VSCodium; the AUR package now follows standard names.
+
 [GH-15]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/15
 
 ## [1.5.0] – 2021-09-25

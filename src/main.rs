@@ -157,16 +157,6 @@ const PROVIDERS: &[ProviderDefinition] = &[
         relative_obj_path: "aur/visualstudiocode",
         config: ConfigLocation { dirname: "Code" },
     },
-    // The binary AUR package for vscodium: https://aur.archlinux.org/packages/vscodium-bin
-    // and likely other VSCodium packages as well, the Desktop file seems to be fairly standard
-    ProviderDefinition {
-        label: "VSCodium",
-        desktop_id: "VSCodium.desktop",
-        relative_obj_path: "vscodium",
-        config: ConfigLocation {
-            dirname: "VSCodium",
-        },
-    },
     // The standard codium package on Linux from here: https://github.com/VSCodium/vscodium.
     // Should work for most Linux distributions packaged from here.
     ProviderDefinition {
