@@ -7,7 +7,7 @@ Add recent workspaces of various VSCode variants to Gnome search.
 Supports
 
 - Code OSS (Arch Linux)
-- VSCodium (binary AUR package)
+- VSCodium
 - Visual Studio Code (AUR package)
 
 Under the hood this is a small systemd user service which implements the [search provider][1] DBus API and exposes recent workspaces from VSCode.
