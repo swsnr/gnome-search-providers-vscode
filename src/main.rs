@@ -9,7 +9,6 @@
 //! Gnome search provider for VSCode editors.
 
 use std::convert::TryFrom;
-use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
@@ -20,8 +19,10 @@ use serde::Deserialize;
 
 use gnome_search_provider_common::app::*;
 use gnome_search_provider_common::dbus::*;
+use gnome_search_provider_common::futures_channel;
 use gnome_search_provider_common::gio;
 use gnome_search_provider_common::gio::glib;
+use gnome_search_provider_common::gio::prelude::*;
 use gnome_search_provider_common::log::*;
 use gnome_search_provider_common::mainloop::*;
 use gnome_search_provider_common::matching::*;
@@ -58,14 +59,15 @@ impl Storage {
     }
 
     /// Read the `storage.json` file in the given `config_dir`.
-    fn from_dir<P: AsRef<Path>>(config_dir: P) -> Result<Self> {
+    async fn from_dir<P: AsRef<Path>>(config_dir: P) -> Result<Self> {
         let path = config_dir.as_ref().join("storage.json");
         trace!("Reading storage from {}", path.display());
-        Self::read(
-            File::open(&path)
-                .with_context(|| format!("Failed to open {} for reading", path.display()))?,
-        )
-        .with_context(|| format!("Failed to parse storage from {}", path.display()))
+        let (data, _) = gio::File::for_path(&path)
+            .load_contents_async_future()
+            .await
+            .with_context(|| format!("Failed to read storage data from {}", path.display()))?;
+        Self::read(data.as_slice())
+            .with_context(|| format!("Failed to parse storage from {}", path.display()))
     }
 
     /// Move this storage into workspace URLs.
@@ -187,9 +189,18 @@ impl AsyncItemsSource<AppLaunchItem> for VscodeWorkspacesSource {
     type Err = Error;
 
     async fn find_recent_items(&self) -> Result<IdMap<AppLaunchItem>, Self::Err> {
-        let mut items = IndexMap::new();
         info!("Finding recent workspaces for {}", self.app_id);
-        let urls = Storage::from_dir(&self.config_dir)?.into_workspace_urls();
+        // Move to the main thread and then asynchronously read recent items through Gio,
+        // and get them sent back to us via a oneshot channel.
+        let (send, recv) = futures_channel::oneshot::channel();
+        let dir = self.config_dir.clone();
+        glib::MainContext::default().invoke(move || {
+            glib::MainContext::default()
+                .spawn_local(async move { send.send(Storage::from_dir(dir).await).unwrap() });
+        });
+
+        let urls = recv.await.unwrap()?.into_workspace_urls();
+        let mut items = IndexMap::new();
         for url in urls {
             trace!("Discovered workspace url {}", url);
             let id = format!("vscode-search-provider-{}-{}", self.app_id, &url);
