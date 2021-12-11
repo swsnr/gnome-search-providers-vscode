@@ -7,7 +7,7 @@ repository = "https://github.com/lunaryorn/gnome-search-providers-vscode"
 version = "1.6.0"
 license = "MPL-2.0"
 authors = ["Sebastian Wiesner <sebastian@swsnr.de>"]
-edition = "2018"
+edition = "2021"
 # We don't publish this to crates.io; you can't install it with cargo install
 # because you'd miss the required service and configuration files, and you
 # wouldn't want to depend on it either.
