@@ -23,7 +23,7 @@ gnome-search-provider-common = { git = "https://github.com/lunaryorn/gnome-searc
 async-trait = "^0.1"
 
 [dev-dependencies]
-pretty_assertions = "^0.7"
+pretty_assertions = "^1.0"
 rust-ini = "^0.17"
 globwalk = "^0.8"
 
