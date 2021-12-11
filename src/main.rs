@@ -32,7 +32,6 @@ use gnome_search_provider_common::zbus::names::WellKnownName;
 
 #[derive(Debug, Deserialize)]
 struct WorkspaceEntry {
-    id: String,
     #[serde(rename = "configPath")]
     config_path: String,
 }
