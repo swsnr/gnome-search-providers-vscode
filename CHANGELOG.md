@@ -6,6 +6,11 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Added
+- Add support for official VSCode packages (see [GH-18]).
+
+[GH-18]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/18
+
 ## [1.6.0] – 2021-11-27
 
 ### Added
