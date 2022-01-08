@@ -9,6 +9,7 @@ Supports
 - Code OSS (Arch Linux)
 - VSCodium
 - Visual Studio Code (AUR package)
+- Visual Studio Code ([Official packages](https://code.visualstudio.com/download))
 
 Under the hood this is a small systemd user service which implements the [search provider][1] DBus API and exposes recent workspaces from VSCode.
 

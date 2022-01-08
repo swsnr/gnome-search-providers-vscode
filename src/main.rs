@@ -166,6 +166,13 @@ const PROVIDERS: &[ProviderDefinition] = &[
             dirname: "VSCodium",
         },
     },
+    // The official install packages from https://code.visualstudio.com/download.
+    ProviderDefinition {
+        label: "Visual Studio Code (Official package)",
+        desktop_id: "code.desktop",
+        relative_obj_path: "official/code",
+        config: ConfigLocation { dirname: "Code" },
+    },
 ];
 
 /// A recent workspace of a VSCode variant.
