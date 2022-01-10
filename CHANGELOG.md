@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.7.0] – 2022-01-10
+
 ### Added
 - Add support for official VSCode packages (see [GH-18]).
 - Add support for systemd log control interface, in order to change log level and log target at runtime with `systemctl service-log-level` and `systemctl service-log-target` respectively (see [GH-19]).
@@ -98,7 +100,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.3.0...v1.4.0
