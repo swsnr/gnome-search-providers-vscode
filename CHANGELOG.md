@@ -6,6 +6,12 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- Remove makefile dependency to fix manual installation (see [GH-21]).
+
+[GH-21]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/21
+
 ## [1.7.0] – 2022-01-10
 
 ### Added
