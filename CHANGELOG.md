@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.7.1] – 2022-01-12
+
 ### Fixed
 
 - Remove makefile dependency to fix manual installation (see [GH-21]).
@@ -106,7 +108,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.4.0...v1.5.0
