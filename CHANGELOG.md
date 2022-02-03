@@ -6,6 +6,9 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Changed
+- Migrate to <https://codeberg.org/flausch/gnome-search-providers-vscode/>.
+
 ## [1.7.1] – 2022-01-12
 
 ### Fixed
