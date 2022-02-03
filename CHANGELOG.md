@@ -8,6 +8,7 @@ and this project doesn't care about versioning.
 
 ### Changed
 - Migrate to <https://codeberg.org/flausch/gnome-search-providers-vscode/>.
+- Update all dependencies.
 
 ## [1.7.1] – 2022-01-12
 
