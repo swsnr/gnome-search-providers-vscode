@@ -84,7 +84,7 @@ impl Storage {
         let path = config_dir.as_ref().join("storage.json");
         trace!("Reading storage from {}", path.display());
         let (data, _) = gio::File::for_path(&path)
-            .load_contents_async_future()
+            .load_contents_future()
             .await
             .with_context(|| format!("Failed to read storage data from {}", path.display()))?;
         Self::read(data.as_slice())
@@ -362,14 +362,10 @@ fn main() {
             env!("CARGO_PKG_VERSION")
         );
 
-        trace!("Acquire main context");
-        let context = glib::MainContext::default();
-        context.push_thread_default();
-
-        match context.block_on(start_dbus_service(log_control)) {
+        match glib::MainContext::ref_thread_default().block_on(start_dbus_service(log_control)) {
             Ok(service) => {
                 let _ = service.app_launch_service.start(
-                    &context,
+                    &glib::MainContext::ref_thread_default(),
                     service.connection,
                     SystemdScopeSettings {
                         prefix: concat!("app-", env!("CARGO_BIN_NAME")).to_string(),
@@ -377,7 +373,7 @@ fn main() {
                         documentation: vec![env!("CARGO_PKG_HOMEPAGE").to_string()],
                     },
                 );
-                create_main_loop(&context).run();
+                create_main_loop(&glib::MainContext::ref_thread_default()).run();
             }
             Err(error) => {
                 error!("Failed to start DBus server: {:#}", error);
