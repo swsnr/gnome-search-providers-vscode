@@ -20,7 +20,16 @@ git describe --dirty
 # Check formatting
 cargo fmt -- --check
 
-# Build and lint
+# Build and lint; we deliberately splice CARGOFLAGS into the command line
+# shellcheck disable=SC2086
 cargo build --locked --all-targets ${CARGOFLAGS:-}
+# shellcheck disable=SC2086
 cargo clippy --locked --all-targets ${CARGOFLAGS:-}
+# shellcheck disable=SC2086
 cargo test --locked --all-targets ${CARGOFLAGS:-}
+
+# Check known vulnerabilities
+cargo audit
+
+# Check shellscripts
+shellcheck scripts/*
