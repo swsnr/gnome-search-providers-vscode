@@ -453,8 +453,7 @@ mod tests {
 
     mod providers {
         use crate::{BUSNAME, PROVIDERS};
-        use anyhow::{Context, Result};
-        use ini::Ini;
+        use anyhow::{anyhow, Context, Result};
         use std::collections::HashSet;
         use std::path::Path;
 
@@ -475,26 +474,25 @@ mod tests {
             .unwrap();
             for entry in ini_files {
                 let filepath = entry.unwrap().into_path();
-                let ini = Ini::load_from_file(&filepath).with_context(|| {
-                    format!("Failed to parse ini file at {}", filepath.display())
+                let mut ini = configparser::ini::Ini::new();
+                ini.load(&filepath).map_err(|s| {
+                    anyhow!("Failed to parse ini file at {}: {}", filepath.display(), s)
                 })?;
                 let provider = ProviderFile {
                     desktop_id: ini
-                        .get_from(Some("Shell Search Provider"), "DesktopId")
-                        .with_context(|| format!("DesktopId missing in {}", &filepath.display()))?
-                        .to_string(),
+                        .get("Shell Search Provider", "DesktopId")
+                        .with_context(|| format!("DesktopId missing in {}", &filepath.display()))?,
                     object_path: ini
-                        .get_from(Some("Shell Search Provider"), "ObjectPath")
-                        .with_context(|| format!("ObjectPath missing in {}", &filepath.display()))?
-                        .to_string(),
+                        .get("Shell Search Provider", "ObjectPath")
+                        .with_context(|| {
+                            format!("ObjectPath missing in {}", &filepath.display())
+                        })?,
                     bus_name: ini
-                        .get_from(Some("Shell Search Provider"), "BusName")
-                        .with_context(|| format!("BusName missing in {}", &filepath.display()))?
-                        .to_string(),
+                        .get("Shell Search Provider", "BusName")
+                        .with_context(|| format!("BusName missing in {}", &filepath.display()))?,
                     version: ini
-                        .get_from(Some("Shell Search Provider"), "Version")
-                        .with_context(|| format!("Version missing in {}", &filepath.display()))?
-                        .to_string(),
+                        .get("Shell Search Provider", "Version")
+                        .with_context(|| format!("Version missing in {}", &filepath.display()))?,
                 };
                 providers.push(provider);
             }
