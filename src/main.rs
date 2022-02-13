@@ -8,22 +8,21 @@
 
 //! Gnome search provider for VSCode editors.
 
-use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use anyhow::{anyhow, Context, Result};
-use futures_channel::mpsc;
+use futures_executor::block_on_stream;
+use rusqlite::{OpenFlags, OptionalExtension};
 use serde::Deserialize;
 use tracing::{event, instrument, Level, Span};
 use tracing_futures::Instrument;
 
 use gnome_search_provider_common::app::*;
-use gnome_search_provider_common::futures_channel;
-use gnome_search_provider_common::futures_util::StreamExt;
+use gnome_search_provider_common::futures_channel::{mpsc, oneshot};
+use gnome_search_provider_common::futures_util::{SinkExt, StreamExt};
 use gnome_search_provider_common::gio;
 use gnome_search_provider_common::gio::glib;
-use gnome_search_provider_common::gio::prelude::*;
 use gnome_search_provider_common::logging::*;
 use gnome_search_provider_common::mainloop::*;
 use gnome_search_provider_common::matching::*;
@@ -45,7 +44,11 @@ enum StorageOpenedPathsListEntry {
         #[serde(rename = "folderUri")]
         uri: String,
     },
-    Other(serde_json::Value),
+    File {
+        #[serde(rename = "fileUri")]
+        #[allow(dead_code)]
+        uri: String,
+    },
 }
 
 impl StorageOpenedPathsListEntry {
@@ -54,57 +57,83 @@ impl StorageOpenedPathsListEntry {
         match self {
             Self::Workspace { workspace } => Some(workspace.config_path),
             Self::Folder { uri } => Some(uri),
-            Self::Other(_) => None,
+            Self::File { .. } => None,
         }
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 struct StorageOpenedPathsList {
-    /// Up to code 1.54
-    workspaces3: Option<Vec<String>>,
-    /// From code 1.55
     entries: Option<Vec<StorageOpenedPathsListEntry>>,
 }
 
-#[derive(Debug, Deserialize)]
-struct Storage {
-    #[serde(rename = "openedPathsList")]
-    opened_paths_list: Option<StorageOpenedPathsList>,
-}
-
-impl Storage {
-    /// Read a VSCode storage.json from the given `reader`.
-    fn read<R: Read>(reader: R) -> Result<Self> {
-        serde_json::from_reader(reader).map_err(Into::into)
-    }
-
-    /// Read the `storage.json` file in the given `config_dir`.
-    #[instrument]
-    async fn from_dir<P: AsRef<Path> + std::fmt::Debug>(config_dir: P) -> Result<Self> {
-        let path = config_dir.as_ref().join("storage.json");
-        event!(Level::TRACE, "Reading storage from {}", path.display());
-        let (data, _) = gio::File::for_path(&path)
-            .load_contents_future()
-            .await
-            .with_context(|| format!("Failed to read storage data from {}", path.display()))?;
-        Self::read(data.as_slice())
-            .with_context(|| format!("Failed to parse storage from {}", path.display()))
-    }
-
-    /// Move this storage into workspace URLs.
+impl StorageOpenedPathsList {
     fn into_workspace_urls(self) -> Vec<String> {
         event!(Level::TRACE, "Extracting workspace URLs from {:?}", self);
-        if let Some(paths) = self.opened_paths_list {
-            let entries = paths.entries.unwrap_or_default();
-            let workspaces3 = paths.workspaces3.unwrap_or_default();
-            entries
-                .into_iter()
-                .filter_map(|entry| entry.into_workspace_url())
-                .chain(workspaces3.into_iter())
-                .collect()
+        self.entries
+            .map(|e| {
+                e.into_iter()
+                    .filter_map(|entry| entry.into_workspace_url())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+}
+
+/// VSCode global storage.
+#[derive(Debug)]
+struct GlobalStorage {
+    connection: rusqlite::Connection,
+}
+
+impl GlobalStorage {
+    /// Open a global storage database at the given path.
+    fn open_file<P: AsRef<Path>>(file: P) -> rusqlite::Result<Self> {
+        event!(
+            Level::DEBUG,
+            "Opening VSCode global storage at {}",
+            file.as_ref().display()
+        );
+        Ok(Self {
+            connection: rusqlite::Connection::open_with_flags(
+                file,
+                OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
+            )?,
+        })
+    }
+
+    /// Return the path of the global storage database in a VSCode configuration directory.
+    fn database_path_in_config_dir<P: AsRef<Path>>(directory: P) -> PathBuf {
+        directory
+            .as_ref()
+            .join("User")
+            .join("globalStorage")
+            .join("state.vscdb")
+    }
+
+    // Open the global storage database in the given configuration `directory`.
+    fn open_from_config_directory<P: AsRef<Path>>(directory: P) -> rusqlite::Result<Self> {
+        Self::open_file(Self::database_path_in_config_dir(directory))
+    }
+
+    /// Query recently opened path lists.
+    #[instrument(skip(self))]
+    fn recently_opened_paths_list(&self) -> Result<StorageOpenedPathsList> {
+        event!(Level::DEBUG, "Querying global storage for workspace list");
+        let result = self
+            .connection
+            .query_row_and_then(
+                "SELECT value FROM ItemTable WHERE key = 'history.recentlyOpenedPathsList';",
+                [],
+                |row| row.get(0),
+            )
+            .optional()
+            .with_context(|| "Failed to query recently opened paths lists from global storage")?;
+        if let Some(data) = result {
+            serde_json::from_value(data)
+                .with_context(|| "Failed to parse JSON data from recently opened paths lists")
         } else {
-            Vec::new()
+            Ok(Default::default())
         }
     }
 }
@@ -197,42 +226,6 @@ fn recent_item(url: String) -> Result<AppLaunchItem> {
     }
 }
 
-#[instrument()]
-async fn find_recent_items(
-    app_id: &AppId,
-    config_dir: PathBuf,
-) -> Result<IndexMap<String, AppLaunchItem>> {
-    event!(Level::INFO, %app_id, "Finding recent workspaces for {}", app_id);
-    let span = Span::current();
-    // Move to the main thread and then asynchronously read recent items through Gio,
-    // and get them sent back to us via a oneshot channel.  We can't run the future
-    // right away, because Gio futures aren't Send.
-    let (send, recv) = futures_channel::oneshot::channel();
-    let dir = config_dir.clone();
-    glib::MainContext::default().invoke(move || {
-        glib::MainContext::default().spawn_local(
-            async move { send.send(Storage::from_dir(dir).await).unwrap() }.instrument(span),
-        );
-    });
-
-    let urls = recv.await.unwrap()?.into_workspace_urls();
-    let mut items = IndexMap::new();
-    for url in urls {
-        event!(Level::TRACE, %app_id, "Discovered workspace url {}", url);
-        let id = format!("vscode-search-provider-{}-{}", app_id, &url);
-        match recent_item(url) {
-            Ok(item) => {
-                items.insert(id, item);
-            }
-            Err(err) => {
-                event!(Level::WARN, %app_id, "Skipping workspace: {}", err)
-            }
-        }
-    }
-    event!(Level::INFO, %app_id, "Found {} workspace(s) for {}", items.len(), app_id);
-    Ok(items)
-}
-
 /// The name to request on the bus.
 const BUSNAME: &str = "de.swsnr.searchprovider.VSCode";
 
@@ -250,10 +243,10 @@ struct Service {
 /// Handle a single search provider request.
 ///
 /// Handle `request` and return the new list of app items, if any.
-#[instrument(skip(items), fields(app_id=%app_id, request=%request.name()))]
+#[instrument(skip(items, storage_tx), fields(app_id=%app_id, request=%request.name()))]
 async fn handle_search_provider_request(
     app_id: AppId,
-    config_directory: PathBuf,
+    mut storage_tx: mpsc::Sender<(Span, oneshot::Sender<Result<StorageOpenedPathsList>>)>,
     items: Option<Arc<IndexMap<String, AppLaunchItem>>>,
     request: AppItemSearchRequest,
 ) -> Option<Arc<IndexMap<String, AppLaunchItem>>> {
@@ -267,13 +260,41 @@ async fn handle_search_provider_request(
         AppItemSearchRequest::GetItems(_, respond_to) => {
             let reply = match items {
                 None => {
-                    find_recent_items(&app_id, config_directory.clone())
-                        .in_current_span()
-                        .await
-                        .map_err(|error| {
-                            event!(Level::ERROR, %app_id, %error, "Failed to read recent workspaces: {:#}", error);
-                            zbus::fdo::Error::Failed(format!("Failed to read recent workspaces: {}", error))
-                        }).map(Arc::new)
+                    let (tx, rx) = oneshot::channel();
+                    if storage_tx.send((Span::current(), tx)).await.is_err() {
+                        event!(Level::ERROR, %app_id, "Global storage thread no longer running");
+                        Err(zbus::fdo::Error::Failed(
+                            "Global storage thread no longer running".to_string(),
+                        ))
+                    } else {
+                        rx.await
+                            .map_err(|_| {
+                                event!(Level::ERROR, %app_id, "Channel end dropped while waiting for response");
+                                zbus::fdo::Error::Failed("Failed to get recent items".to_string())
+                            })
+                        .and_then(|result| {
+                            result.map_err(|error| {
+                                event!(Level::ERROR, %app_id, %error, "Failed to query recent items: {:#}", error);
+                                zbus::fdo::Error::Failed(format!("Failed to query recent items: {}", error))
+                            })
+                        }).map(|list| {
+                            let mut map = IndexMap::new();
+                            let urls = list.into_workspace_urls();
+                            for url in urls {
+                                event!(Level::TRACE, %app_id, "Discovered workspace url {}", url);
+                                let id = format!("vscode-search-provider-{}-{}", app_id, &url);
+                                match recent_item(url) {
+                                    Ok(item) => {
+                                        map.insert(id, item);
+                                    }
+                                    Err(err) => {
+                                        event!(Level::WARN, %app_id, "Skipping workspace: {}", err)
+                                    }
+                                }
+                            }
+                            Arc::new(map)
+                        })
+                    }
                 }
                 Some(ref items) => Ok(Arc::clone(items)),
             };
@@ -290,7 +311,7 @@ async fn handle_search_provider_request(
 /// responses.
 async fn serve_search_provider(
     app_id: AppId,
-    config_directory: PathBuf,
+    storage_tx: mpsc::Sender<(Span, oneshot::Sender<Result<StorageOpenedPathsList>>)>,
     mut rx: mpsc::Receiver<AppItemSearchRequest>,
 ) {
     let mut items = None;
@@ -304,7 +325,7 @@ async fn serve_search_provider(
                 let span = request.span().clone();
                 items = handle_search_provider_request(
                     app_id.clone(),
-                    config_directory.clone(),
+                    storage_tx.clone(),
                     items,
                     request,
                 )
@@ -333,11 +354,24 @@ async fn start_dbus_service(log_control: LogControl) -> Result<Service> {
             let (tx, rx) = mpsc::channel(8);
             let search_provider =
                 AppItemSearchProvider::new(gio_app.into(), app_launch_service.client(), tx);
+            let config_dir = user_config_dir.join(provider.config.dirname);
+            let storage =
+                GlobalStorage::open_from_config_directory(&config_dir).with_context(|| {
+                    format!("Failed to open global storage in {}", config_dir.display())
+                })?;
+            let (storage_tx, storage_rx) = mpsc::channel(8);
             glib::MainContext::ref_thread_default().spawn(serve_search_provider(
                 search_provider.app().id().clone(),
-                user_config_dir.join(provider.config.dirname),
+                storage_tx,
                 rx,
             ));
+            std::thread::spawn(move || {
+                for (span, respond_to) in block_on_stream(storage_rx) {
+                    span.in_scope(|| {
+                        let _ = respond_to.send(storage.recently_opened_paths_list());
+                    })
+                }
+            });
             providers.push((provider.objpath(), search_provider));
         } else {
             event!(
@@ -454,8 +488,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::app;
-    use crate::Storage;
+    use super::{app, glib, GlobalStorage, PROVIDERS};
 
     #[test]
     fn verify_app() {
@@ -463,61 +496,24 @@ mod tests {
     }
 
     #[test]
-    fn read_recent_workspaces_code_1_54() {
-        let data: &[u8] = include_bytes!("tests/code_1_54_storage.json");
-        let storage = Storage::read(data).unwrap();
-        assert!(
-            &storage.opened_paths_list.is_some(),
-            "opened paths list missing"
-        );
-        assert!(
-            &storage
-                .opened_paths_list
-                .as_ref()
-                .unwrap()
-                .workspaces3
-                .is_some(),
-            "workspaces3 missing"
-        );
-        assert_eq!(
-            storage.into_workspace_urls(),
-            vec![
-                "file:///home/foo//mdcat",
-                "file:///home/foo//gnome-jetbrains-search-provider",
-                "file:///home/foo//gnome-shell",
-                "file:///home/foo//sbctl",
-            ]
-        )
-    }
+    fn load_global_storage() {
+        let user_config_dir = glib::user_config_dir();
+        let global_storage_db = PROVIDERS
+            .iter()
+            .find_map(|provider| {
+                let dir = user_config_dir.join(provider.config.dirname);
+                let storage_db = GlobalStorage::database_path_in_config_dir(dir);
+                match std::fs::metadata(&storage_db) {
+                    Ok(metadata) if metadata.is_file() => Some(storage_db),
+                    _ => None,
+                }
+            })
+            .expect("At least one provider required for this test");
 
-    #[test]
-    fn read_recent_workspaces_code_1_55() {
-        let data: &[u8] = include_bytes!("tests/code_1_55_storage.json");
-        let storage = Storage::read(data).unwrap();
-        assert!(
-            &storage.opened_paths_list.is_some(),
-            "opened paths list missing"
-        );
-        assert!(
-            &storage
-                .opened_paths_list
-                .as_ref()
-                .unwrap()
-                .entries
-                .is_some(),
-            "entries missing"
-        );
-
-        assert_eq!(
-            storage.into_workspace_urls(),
-            vec![
-                "file:///home/foo//workspace.code-workspace",
-                "file:///home/foo//mdcat",
-                "file:///home/foo//gnome-jetbrains-search-provider",
-                "file:///home/foo//gnome-shell",
-                "file:///home/foo//sbctl",
-            ]
-        );
+        let storage = GlobalStorage::open_file(global_storage_db).unwrap();
+        let list = storage.recently_opened_paths_list().unwrap();
+        let entries = list.entries.unwrap_or_default();
+        assert!(!entries.is_empty(), "Entries: {:?}", entries);
     }
 
     mod providers {
