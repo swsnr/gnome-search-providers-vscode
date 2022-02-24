@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.9.0] – 2022-02-24
+
 ### Added
 - Support recent items in global storage in VS Code 1.64 and newer (see [#22]).
   This implies a dependency on sqlite.
@@ -121,7 +123,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://codeberg.org/flausch/gnome-search-providers-vscode/compare/v1.8.0...HEAD
+[Unreleased]: https://codeberg.org/flausch/gnome-search-providers-vscode/compare/v1.9.0...HEAD
+[1.9.0]: https://codeberg.org/flausch/gnome-search-providers-vscode/compare/v1.8.0...v1.9.0
 [1.8.0]: https://codeberg.org/flausch/gnome-search-providers-vscode/compare/v1.7.1...v1.8.0
 [1.7.1]: https://codeberg.org/flausch/gnome-search-providers-vscode/compare/v1.7.0...v1.7.1
 [1.7.0]: https://codeberg.org/flausch/gnome-search-providers-vscode/compare/v1.6.0...v1.7.0
