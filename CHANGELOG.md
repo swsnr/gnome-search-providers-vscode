@@ -6,6 +6,13 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Added
+- Support recent items in global storage in VS Code 1.64 and newer (see [#22]).
+  This implies a dependency on sqlite.
+
+### Removed
+- Support for recent items in legacy `storage.json` in VSCode before 1.64  (see [#22]).
+
 ## [1.8.0] – 2022-02-04
 
 ### Changed
