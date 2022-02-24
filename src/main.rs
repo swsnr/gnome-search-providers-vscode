@@ -10,22 +10,23 @@
 
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-use anyhow::{anyhow, Context, Error, Result};
-use async_trait::async_trait;
+use anyhow::{anyhow, Context, Result};
+use futures_channel::mpsc;
 use serde::Deserialize;
-use tracing::{debug, error, info, instrument, trace, warn, Span};
+use tracing::{event, instrument, Level, Span};
 use tracing_futures::Instrument;
 
 use gnome_search_provider_common::app::*;
 use gnome_search_provider_common::futures_channel;
+use gnome_search_provider_common::futures_util::StreamExt;
 use gnome_search_provider_common::gio;
 use gnome_search_provider_common::gio::glib;
 use gnome_search_provider_common::gio::prelude::*;
 use gnome_search_provider_common::logging::*;
 use gnome_search_provider_common::mainloop::*;
 use gnome_search_provider_common::matching::*;
-use gnome_search_provider_common::source::{AsyncItemsSource, IdMap};
 use gnome_search_provider_common::zbus;
 
 #[derive(Debug, Deserialize)]
@@ -82,7 +83,7 @@ impl Storage {
     #[instrument]
     async fn from_dir<P: AsRef<Path> + std::fmt::Debug>(config_dir: P) -> Result<Self> {
         let path = config_dir.as_ref().join("storage.json");
-        trace!("Reading storage from {}", path.display());
+        event!(Level::TRACE, "Reading storage from {}", path.display());
         let (data, _) = gio::File::for_path(&path)
             .load_contents_future()
             .await
@@ -93,7 +94,7 @@ impl Storage {
 
     /// Move this storage into workspace URLs.
     fn into_workspace_urls(self) -> Vec<String> {
-        trace!("Extracting workspace URLs from {:?}", self);
+        event!(Level::TRACE, "Extracting workspace URLs from {:?}", self);
         if let Some(paths) = self.opened_paths_list {
             let entries = paths.entries.unwrap_or_default();
             let workspaces3 = paths.workspaces3.unwrap_or_default();
@@ -189,56 +190,47 @@ fn recent_item(url: String) -> Result<AppLaunchItem> {
             name: name.to_string(),
             uri: url,
         };
-        trace!("Found recent workspace item {:?}", item);
+        event!(Level::TRACE, "Found recent workspace item {:?}", item);
         Ok(item)
     } else {
         Err(anyhow!("Failed to extract workspace name from URL {}", url))
     }
 }
 
-#[derive(Debug)]
-struct VscodeWorkspacesSource {
-    app_id: AppId,
-    /// The configuration directory.
+#[instrument()]
+async fn find_recent_items(
+    app_id: &AppId,
     config_dir: PathBuf,
-}
+) -> Result<IndexMap<String, AppLaunchItem>> {
+    event!(Level::INFO, %app_id, "Finding recent workspaces for {}", app_id);
+    let span = Span::current();
+    // Move to the main thread and then asynchronously read recent items through Gio,
+    // and get them sent back to us via a oneshot channel.  We can't run the future
+    // right away, because Gio futures aren't Send.
+    let (send, recv) = futures_channel::oneshot::channel();
+    let dir = config_dir.clone();
+    glib::MainContext::default().invoke(move || {
+        glib::MainContext::default().spawn_local(
+            async move { send.send(Storage::from_dir(dir).await).unwrap() }.instrument(span),
+        );
+    });
 
-#[async_trait]
-impl AsyncItemsSource<AppLaunchItem> for VscodeWorkspacesSource {
-    type Err = Error;
-
-    #[instrument()]
-    async fn find_recent_items(&self) -> Result<IdMap<AppLaunchItem>, Self::Err> {
-        info!("Finding recent workspaces for {}", self.app_id);
-        let span = Span::current();
-        // Move to the main thread and then asynchronously read recent items through Gio,
-        // and get them sent back to us via a oneshot channel.  We can't run the future
-        // right away, because Gio futures aren't Send.
-        let (send, recv) = futures_channel::oneshot::channel();
-        let dir = self.config_dir.clone();
-        glib::MainContext::default().invoke(move || {
-            glib::MainContext::default().spawn_local(
-                async move { send.send(Storage::from_dir(dir).await).unwrap() }.instrument(span),
-            );
-        });
-
-        let urls = recv.await.unwrap()?.into_workspace_urls();
-        let mut items = IndexMap::new();
-        for url in urls {
-            trace!("Discovered workspace url {}", url);
-            let id = format!("vscode-search-provider-{}-{}", self.app_id, &url);
-            match recent_item(url) {
-                Ok(item) => {
-                    items.insert(id, item);
-                }
-                Err(err) => {
-                    warn!("Skipping workspace: {}", err)
-                }
+    let urls = recv.await.unwrap()?.into_workspace_urls();
+    let mut items = IndexMap::new();
+    for url in urls {
+        event!(Level::TRACE, %app_id, "Discovered workspace url {}", url);
+        let id = format!("vscode-search-provider-{}-{}", app_id, &url);
+        match recent_item(url) {
+            Ok(item) => {
+                items.insert(id, item);
+            }
+            Err(err) => {
+                event!(Level::WARN, %app_id, "Skipping workspace: {}", err)
             }
         }
-        info!("Found {} workspace(s) for {}", items.len(), self.app_id);
-        Ok(items)
     }
+    event!(Level::INFO, %app_id, "Found {} workspace(s) for {}", items.len(), app_id);
+    Ok(items)
 }
 
 /// The name to request on the bus.
@@ -255,6 +247,74 @@ struct Service {
     connection: zbus::Connection,
 }
 
+/// Handle a single search provider request.
+///
+/// Handle `request` and return the new list of app items, if any.
+#[instrument(skip(items), fields(app_id=%app_id, request=%request.name()))]
+async fn handle_search_provider_request(
+    app_id: AppId,
+    config_directory: PathBuf,
+    items: Option<Arc<IndexMap<String, AppLaunchItem>>>,
+    request: AppItemSearchRequest,
+) -> Option<Arc<IndexMap<String, AppLaunchItem>>> {
+    match request {
+        AppItemSearchRequest::Invalidate(_) => {
+            if items.is_some() {
+                event!(Level::DEBUG, %app_id, "Invalidating cached projects");
+            }
+            None
+        }
+        AppItemSearchRequest::GetItems(_, respond_to) => {
+            let reply = match items {
+                None => {
+                    find_recent_items(&app_id, config_directory.clone())
+                        .in_current_span()
+                        .await
+                        .map_err(|error| {
+                            event!(Level::ERROR, %app_id, %error, "Failed to read recent workspaces: {:#}", error);
+                            zbus::fdo::Error::Failed(format!("Failed to read recent workspaces: {}", error))
+                        }).map(Arc::new)
+                }
+                Some(ref items) => Ok(Arc::clone(items)),
+            };
+            let items = reply.as_ref().map(|a| a.clone()).ok();
+            // We don't care if the receiver was dropped before we could answer it.
+            let _ = respond_to.send(reply);
+            items
+        }
+    }
+}
+/// Serve search provider requests.
+///
+/// Loop over requests received from `rx`, and provide the search provider with appropriate
+/// responses.
+async fn serve_search_provider(
+    app_id: AppId,
+    config_directory: PathBuf,
+    mut rx: mpsc::Receiver<AppItemSearchRequest>,
+) {
+    let mut items = None;
+    loop {
+        match rx.next().await {
+            None => {
+                event!(Level::DEBUG, %app_id, "No more requests from search provider, stopping");
+                break;
+            }
+            Some(request) => {
+                let span = request.span().clone();
+                items = handle_search_provider_request(
+                    app_id.clone(),
+                    config_directory.clone(),
+                    items,
+                    request,
+                )
+                .instrument(span)
+                .await;
+            }
+        }
+    }
+}
+
 /// Starts the DBUS service loop.
 ///
 /// Connect to the ession bus and register DBus objects for every provider
@@ -265,28 +325,31 @@ async fn start_dbus_service(log_control: LogControl) -> Result<Service> {
     let app_launch_service = AppLaunchService::new();
     // Create providers for all apps we find
     let user_config_dir = glib::user_config_dir();
-    info!("Looking for installed apps");
-    let providers = PROVIDERS
-        .iter()
-        .filter_map(|provider| {
-            gio::DesktopAppInfo::new(provider.desktop_id).map(|app| {
-                info!("Found app {}", provider.desktop_id);
-                (
-                    provider.objpath(),
-                    AppItemSearchProvider::new(
-                        app.into(),
-                        VscodeWorkspacesSource {
-                            app_id: provider.desktop_id.into(),
-                            config_dir: user_config_dir.join(provider.config.dirname),
-                        },
-                        app_launch_service.client(),
-                    ),
-                )
-            })
-        })
-        .collect::<Vec<_>>();
+    event!(Level::INFO, "Looking for installed apps");
+    let mut providers = Vec::with_capacity(PROVIDERS.len());
+    for provider in PROVIDERS {
+        if let Some(gio_app) = gio::DesktopAppInfo::new(provider.desktop_id) {
+            event!(Level::INFO, "Found app {}", provider.desktop_id);
+            let (tx, rx) = mpsc::channel(8);
+            let search_provider =
+                AppItemSearchProvider::new(gio_app.into(), app_launch_service.client(), tx);
+            glib::MainContext::ref_thread_default().spawn(serve_search_provider(
+                search_provider.app().id().clone(),
+                user_config_dir.join(provider.config.dirname),
+                rx,
+            ));
+            providers.push((provider.objpath(), search_provider));
+        } else {
+            event!(
+                Level::DEBUG,
+                desktop_id = provider.desktop_id,
+                "Skipping provider, app not found"
+            );
+        }
+    }
 
-    info!(
+    event!(
+        Level::INFO,
         "Registering {} search provider(s) on {}",
         providers.len(),
         BUSNAME
@@ -296,10 +359,12 @@ async fn start_dbus_service(log_control: LogControl) -> Result<Service> {
         .try_fold(
             zbus::ConnectionBuilder::session()?,
             |b, (path, provider)| {
-                debug!(
-                    "Registering search provider for app {} at {}",
-                    provider.app().id(),
-                    path
+                event!(
+                Level::DEBUG,
+                app_id=%provider.app().id(),
+                "Registering search provider for app {} at {}",
+                provider.app().id(),
+                path
                 );
                 b.serve_at(path, provider)
             },
@@ -316,18 +381,22 @@ async fn start_dbus_service(log_control: LogControl) -> Result<Service> {
     // Manually tick the connection on the glib mainloop to make all code in zbus run on the mainloop.
     glib::MainContext::ref_thread_default().spawn(tick(connection.clone()));
 
-    info!("Acquired name {}, serving search providers", BUSNAME);
+    event!(
+        Level::INFO,
+        "Acquired name {}, serving search providers",
+        BUSNAME
+    );
     Ok(Service {
         app_launch_service,
         connection,
     })
 }
 
-fn app() -> clap::App<'static> {
+fn app() -> clap::Command<'static> {
     use clap::*;
-    app_from_crate!()
-        .setting(AppSettings::DontCollapseArgsInUsage)
+    command!()
         .setting(AppSettings::DeriveDisplayOrder)
+        .dont_collapse_args_in_usage(true)
         .term_width(80)
         .after_help(
             "\
@@ -356,7 +425,8 @@ fn main() {
     } else {
         let log_control = setup_logging_for_service();
 
-        info!(
+        event!(
+            Level::INFO,
             "Started {} version: {}",
             env!("CARGO_BIN_NAME"),
             env!("CARGO_PKG_VERSION")
@@ -365,7 +435,6 @@ fn main() {
         match glib::MainContext::ref_thread_default().block_on(start_dbus_service(log_control)) {
             Ok(service) => {
                 let _ = service.app_launch_service.start(
-                    &glib::MainContext::ref_thread_default(),
                     service.connection,
                     SystemdScopeSettings {
                         prefix: concat!("app-", env!("CARGO_BIN_NAME")).to_string(),
@@ -376,7 +445,7 @@ fn main() {
                 create_main_loop(&glib::MainContext::ref_thread_default()).run();
             }
             Err(error) => {
-                error!("Failed to start DBus server: {:#}", error);
+                event!(Level::ERROR, "Failed to start DBus server: {:#}", error);
                 std::process::exit(1);
             }
         }
