@@ -2,6 +2,9 @@
 
 Add recent workspaces of various VSCode variants to Gnome search.
 
+**Note:** I no longer use VSCode, and likely won't actively fix issues with this code.
+Pull requests welcome.
+
 ![](./screenshot.png)
 
 Supports
