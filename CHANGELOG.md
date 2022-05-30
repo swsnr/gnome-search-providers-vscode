@@ -6,6 +6,9 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Changed
+- Update dependencies.
+
 ## [1.9.0] – 2022-02-24
 
 ### Added
