@@ -441,11 +441,6 @@ Set $RUST_LOG to control the log level",
                 .action(ArgAction::SetTrue)
                 .help("List all providers"),
         )
-        .arg(
-            Arg::new("journal_log")
-                .long("--journal-log")
-                .help("Directly log to the systemd journal instead of stdout"),
-        )
 }
 
 fn main() {
