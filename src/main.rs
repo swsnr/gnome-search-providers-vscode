@@ -426,10 +426,9 @@ async fn start_dbus_service(log_control: LogControl) -> Result<Service> {
     })
 }
 
-fn app() -> clap::Command<'static> {
+fn app() -> clap::Command {
     use clap::*;
     command!()
-        .setting(AppSettings::DeriveDisplayOrder)
         .dont_collapse_args_in_usage(true)
         .term_width(80)
         .after_help(
@@ -438,7 +437,8 @@ Set $RUST_LOG to control the log level",
         )
         .arg(
             Arg::new("providers")
-                .long("--providers")
+                .long("providers")
+                .action(ArgAction::SetTrue)
                 .help("List all providers"),
         )
         .arg(
@@ -450,7 +450,7 @@ Set $RUST_LOG to control the log level",
 
 fn main() {
     let matches = app().get_matches();
-    if matches.is_present("providers") {
+    if matches.get_flag("providers") {
         let mut labels: Vec<&'static str> = PROVIDERS.iter().map(|p| p.label).collect();
         labels.sort_unstable();
         for label in labels {
