@@ -9,6 +9,7 @@ and this project doesn't care about versioning.
 ### Changed
 
 - Migrate back to <https://github.com/lunaryorn/gnome-search-providers-vscode>
+- Update dependencies.
 
 ## [1.9.1] – 2022-05-30
 
