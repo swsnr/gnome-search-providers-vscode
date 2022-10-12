@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.10.0] – 2022-10-12
+
 ### Changed
 
 - Migrate back to <https://github.com/lunaryorn/gnome-search-providers-vscode>
@@ -133,7 +135,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.9.1...HEAD
+[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.7.1...v1.8.0
