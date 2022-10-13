@@ -31,5 +31,5 @@ jobs:
         with:
           components: clippy
       - run: cargo build --all-targets --locked
-      - run: cargo clipp --all-targets --locked
+      - run: cargo clippy --all-targets --locked
       - run: cargo test --locked
