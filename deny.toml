@@ -18,3 +18,14 @@ copyleft = "deny"
 allow-osi-fsf-free = "neither"
 default = "deny"
 confidence-threshold = 0.8
+
+[sources]
+# Deny all unknown sources
+unknown-registry = "deny"
+unknown-git = "deny"
+# Require tag names for git sources
+required-git-spec = "tag"
+# Allow common dependency
+allow-git = [
+    "https://github.com/lunaryorn/gnome-search-providers-jetbrains.git",
+]
