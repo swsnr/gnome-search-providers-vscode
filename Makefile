@@ -25,5 +25,5 @@ install:
 uninstall:
 	rm -f $(addprefix $(SEARCH_PROVIDERS_DIR)/,$(notdir $(SEARCH_PROVIDERS)))
 	rm -rf $(LIBDIR)/gnome-search-providers-vscode/
-	rm -f $(LIBDIR)/systemd/user/de.swsnr.searchprovider.VSCode.service
-	rm -f $(DATADIR)/dbus-1/services/gnome-search-providers-vscode.service
+	rm -f $(LIBDIR)/systemd/user/gnome-search-providers-vscode.service
+	rm -f $(DATADIR)/dbus-1/services/de.swsnr.searchprovider.VSCode.service

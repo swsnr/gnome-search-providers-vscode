@@ -6,6 +6,12 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix `make uninstall` residual \*.service files (see [GH-25]).
+
+[GH-25]: https://github.com/lunaryorn/gnome-search-providers-vscode/pull/25
+
 ## [1.10.0] – 2022-10-12
 
 ### Changed
