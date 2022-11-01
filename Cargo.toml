@@ -15,7 +15,7 @@ publish = false
 
 [dependencies]
 anyhow = "^1.0"
-clap = { version = "4.0.14", default-features = false, features = [
+clap = { version = "4.0.18", default-features = false, features = [
     "std",
     "cargo",
 ] }
