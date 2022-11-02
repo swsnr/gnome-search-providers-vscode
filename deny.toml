@@ -1,4 +1,5 @@
-targets = []
+# We only build for Linux
+targets = [{ triple = "x86_64-unknown-linux-gnu" }]
 
 [advisories]
 db-path = "~/.cargo/advisory-db"
