@@ -6,6 +6,9 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Changed
+- Update dependencies.
+
 ### Fixed
 
 - Fix `make uninstall` residual \*.service files (see [GH-25]).
