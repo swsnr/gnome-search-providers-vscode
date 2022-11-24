@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.10.1] – 2022-11-24
+
 ### Changed
 - Update dependencies.
 
@@ -144,7 +146,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.10.1...HEAD
+[1.10.1]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/v1.8.0...v1.9.0
