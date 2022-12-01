@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.10.2] – 2022-12-01
+
 ### Changed
 - Update Github URL to <https://github.com/swsnr/gnome-search-providers-vscode>.
 - Update dependencies.
@@ -150,7 +152,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.1...HEAD
+[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.2...HEAD
+[1.10.2]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.1...v1.10.2
 [1.10.1]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.9.0...v1.9.1
