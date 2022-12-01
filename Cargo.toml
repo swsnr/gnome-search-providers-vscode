@@ -34,7 +34,6 @@ globwalk = "0.8.1"
 
 [package.metadata.release]
 pre-release-commit-message = "Release {{version}}"
-post-release-commit-message = "Bump version to {{next_version}}"
 tag-prefix = ""
 tag-message = "Version {{tag_name}}"
 pre-release-replacements = [
