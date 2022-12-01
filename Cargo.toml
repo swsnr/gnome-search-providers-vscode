@@ -2,8 +2,8 @@
 name = "gnome-search-providers-vscode"
 description = "Gnome search providers for recent workspace in VSCode variants"
 readme = "README.md"
-homepage = "https://github.com/lunaryorn/gnome-search-providers-vscode"
-repository = "https://github.com/lunaryorn/gnome-search-providers-vscode"
+homepage = "https://github.com/swsnr/gnome-search-providers-vscode"
+repository = "https://github.com/swsnr/gnome-search-providers-vscode"
 version = "1.10.1"
 license = "MPL-2.0"
 authors = ["Sebastian Wiesner <sebastian@swsnr.de>"]
@@ -24,7 +24,7 @@ tracing-futures = { version = "0.2.5", default-features = false }
 serde = { version = "1.0.148", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0.89", default-features = false }
 rusqlite = { version = "0.28.0", default-features = false, features = ["serde_json"] }
-gnome-search-provider-common = { version = "1.12.1", git = "https://github.com/lunaryorn/gnome-search-providers-jetbrains.git", tag = "v1.12.1" }
+gnome-search-provider-common = { version = "1.12.2", git = "https://github.com/swsnr/gnome-search-providers-jetbrains.git", tag = "v1.12.2" }
 futures-executor = { version = "0.3.25", default-features = false }
 
 [dev-dependencies]
@@ -41,6 +41,6 @@ pre-release-replacements = [
     # Update the changelog
     { file = "CHANGELOG.md", search = "## \\[Unreleased\\]", replace = "## [Unreleased]\n\n## [{{version}}] – {{date}}", exactly = 1 },
     { file = "CHANGELOG.md", search = "HEAD", replace = "{{tag_name}}", exactly = 1 },
-    { file = "CHANGELOG.md", search = "\\[Unreleased\\]: ", replace = "[Unreleased]: https://github.com/lunaryorn/gnome-search-providers-vscode/compare/{{tag_name}}...HEAD\n[{{version}}]: ", exactly = 1 },
+    { file = "CHANGELOG.md", search = "\\[Unreleased\\]: ", replace = "[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/{{tag_name}}...HEAD\n[{{version}}]: ", exactly = 1 },
 ]
 publish = false
