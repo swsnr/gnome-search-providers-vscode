@@ -275,7 +275,7 @@ async fn handle_search_provider_request(
                         .and_then(|result| {
                             result.map_err(|error| {
                                 event!(Level::ERROR, %app_id, %error, "Failed to query recent items: {:#}", error);
-                                zbus::fdo::Error::Failed(format!("Failed to query recent items: {}", error))
+                                zbus::fdo::Error::Failed(format!("Failed to query recent items: {error}"))
                             })
                         }).map(|list| {
                             let mut map = IndexMap::new();
@@ -449,7 +449,7 @@ fn main() {
         let mut labels: Vec<&'static str> = PROVIDERS.iter().map(|p| p.label).collect();
         labels.sort_unstable();
         for label in labels {
-            println!("{}", label)
+            println!("{label}")
         }
     } else {
         let log_control = setup_logging_for_service();
@@ -510,7 +510,7 @@ mod tests {
         let storage = GlobalStorage::open_file(global_storage_db).unwrap();
         let list = storage.recently_opened_paths_list().unwrap();
         let entries = list.entries.unwrap_or_default();
-        assert!(!entries.is_empty(), "Entries: {:?}", entries);
+        assert!(!entries.is_empty(), "Entries: {entries:?}");
     }
 
     mod providers {
