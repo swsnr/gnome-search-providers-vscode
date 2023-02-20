@@ -25,7 +25,8 @@ confidence-threshold = 0.8
 # Deny all unknown sources
 unknown-registry = "deny"
 unknown-git = "deny"
-# Require tag names for git sources
+# Require at least a tag name for git sources; specific commits with rev are
+# also allowed by this setting.
 required-git-spec = "tag"
 # Allow common dependency
 allow-git = [
