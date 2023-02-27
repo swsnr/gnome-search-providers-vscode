@@ -14,18 +14,18 @@ edition = "2021"
 publish = false
 
 [dependencies]
-anyhow = { version = "1.0.68", default-features = false, features = ["std", "backtrace"] }
-clap = { version = "4.0.32", default-features = false, features = [
+anyhow = { version = "1.0.69", default-features = false, features = ["std", "backtrace"] }
+clap = { version = "4.1.7", default-features = false, features = [
     "std",
     "cargo",
 ] }
 tracing = { version = "0.1.37", default-features = false, features = ["attributes"] }
 tracing-futures = { version = "0.2.5", default-features = false }
 serde = { version = "1.0.152", default-features = false, features = ["derive"] }
-serde_json = { version = "1.0.91", default-features = false }
+serde_json = { version = "1.0.93", default-features = false }
 rusqlite = { version = "0.28.0", default-features = false, features = ["serde_json"] }
-gnome-search-provider-common = { git = "https://github.com/swsnr/gnome-search-providers-jetbrains.git", rev = "154b5e9665e373180c80beb59b5422120a8a080a" }
-futures-executor = { version = "0.3.25", default-features = false }
+gnome-search-provider-common = { git = "https://github.com/swsnr/gnome-search-providers-jetbrains.git", tag = "v1.12.3" }
+futures-executor = { version = "0.3.26", default-features = false }
 
 [dev-dependencies]
 pretty_assertions = "1.3.0"
