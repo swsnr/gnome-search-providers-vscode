@@ -1,4 +1,4 @@
 [D-BUS Service]
 Name=de.swsnr.searchprovider.VSCode
-Exec={PREFIX}/lib/gnome-search-providers-vscode/gnome-search-providers-vscode
+Exec=/bin/false
 SystemdService=gnome-search-providers-vscode.service

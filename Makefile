@@ -1,29 +1,32 @@
 DESTDIR =
 PREFIX = /usr/local
 
-SEARCH_PROVIDERS_DIR = $(DESTDIR)/$(PREFIX)/share/gnome-shell/search-providers
-LIBDIR = $(DESTDIR)/$(PREFIX)/lib
-DATADIR = $(DESTDIR)/$(PREFIX)/share
+## Files are installed into these three base directories.
+# The path to install the service executable (gnome-search-providers-vscode)
+BINDIR = $(PREFIX)/bin
+# The path to install systemd user units in
+USERUNITDIR = $(PREFIX)/lib/systemd/user
+# The base path for dbus services and gnome-shell search providers
+DATADIR = $(PREFIX)/share
+DBUS_SERVICES_DIR = $(DATADIR)/dbus-1/services
+SEARCH_PROVIDERS_DIR = $(DATADIR)/gnome-shell/search-providers
 
 SEARCH_PROVIDERS = $(wildcard providers/*.ini)
 
 .PHONY: build
 build:
 	cargo build --release --locked
-	mkdir -p target/dbus-1 target/systemd
-	sed "s:{PREFIX}:$(PREFIX):g" "dbus-1/de.swsnr.searchprovider.VSCode.service" > "target/dbus-1/de.swsnr.searchprovider.VSCode.service"
-	sed "s:{PREFIX}:$(PREFIX):g" "systemd/gnome-search-providers-vscode.service" > "target/systemd/gnome-search-providers-vscode.service"
 
 .PHONY: install
 install:
-	install -Dm644 -t $(SEARCH_PROVIDERS_DIR) $(SEARCH_PROVIDERS)
-	install -Dm755 -t $(LIBDIR)/gnome-search-providers-vscode/ target/release/gnome-search-providers-vscode
-	install -Dm644 -t $(LIBDIR)/systemd/user/ target/systemd/gnome-search-providers-vscode.service
-	install -Dm644 -t $(DATADIR)/dbus-1/services target/dbus-1/de.swsnr.searchprovider.VSCode.service
+	install -Dm644 -t $(DESTDIR)$(SEARCH_PROVIDERS_DIR) $(SEARCH_PROVIDERS)
+	install -Dm644 -t $(DESTDIR)$(USERUNITDIR) systemd/gnome-search-providers-vscode.service
+	install -Dm644 -t $(DESTDIR)$(DBUS_SERVICES_DIR) dbus-1/de.swsnr.searchprovider.VSCode.service
+	install -Dm755 -t $(DESTDIR)$(BINDIR) target/release/gnome-search-providers-vscode
 
 .PHONY: uninstall
 uninstall:
-	rm -f $(addprefix $(SEARCH_PROVIDERS_DIR)/,$(notdir $(SEARCH_PROVIDERS)))
-	rm -rf $(LIBDIR)/gnome-search-providers-vscode/
-	rm -f $(LIBDIR)/systemd/user/gnome-search-providers-vscode.service
-	rm -f $(DATADIR)/dbus-1/services/de.swsnr.searchprovider.VSCode.service
+	rm -f $(addprefix $(DESTDIR)$(SEARCH_PROVIDERS_DIR)/,$(notdir $(SEARCH_PROVIDERS)))
+	rm -rf $(DESTDIR)$(BINDIR)/gnome-search-providers-vscode
+	rm -f $(DESTDIR)$(USERUNITDIR)/gnome-search-providers-vscode.service
+	rm -f $(DESTDIR)$(DBUS_SERVICES_DIR)/de.swsnr.searchprovider.VSCode.service

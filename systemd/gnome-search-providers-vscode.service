@@ -4,4 +4,4 @@ Description=VSCode workspaces search provider for Gnome shell
 [Service]
 Type=dbus
 BusName=de.swsnr.searchprovider.VSCode
-ExecStart={PREFIX}/lib/gnome-search-providers-vscode/gnome-search-providers-vscode
+ExecStart=gnome-search-providers-vscode
