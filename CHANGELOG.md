@@ -6,6 +6,12 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Changed
+- Refactored internals a lot to simplify code.
+
+### Removed
+- Remove `LogControl` interface, as I never needed it or used it in fact.
+
 ## [1.10.3] – 2023-02-27
 
 ### Changed

@@ -124,7 +124,6 @@ impl GlobalStorage {
 mod tests {
     use crate::providers::PROVIDERS;
     use crate::storage::GlobalStorage;
-    use gnome_search_provider_common::glib;
 
     #[test]
     #[ignore]
