@@ -8,6 +8,7 @@ and this project doesn't care about versioning.
 
 ### Changed
 - Refactored internals a lot to simplify code.
+- Update all dependencies.
 
 ### Removed
 - Remove `LogControl` interface, as I never needed it or used it in fact.
