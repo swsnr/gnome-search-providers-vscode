@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.11.0] – 2023-09-26
+
 ### Changed
 - Refactored internals a lot to simplify code.
 - Update all dependencies.
@@ -164,7 +166,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.3...HEAD
+[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.3...v1.11.0
 [1.10.3]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.2...v1.10.3
 [1.10.2]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.1...v1.10.2
 [1.10.1]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.0...v1.10.1
