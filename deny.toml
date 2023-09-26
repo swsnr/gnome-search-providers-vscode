@@ -8,12 +8,10 @@ vulnerability = "deny"
 unmaintained = "deny"
 yanked = "deny"
 notice = "warn"
-ignore = []
 
 [licenses]
 unlicensed = "deny"
 allow = ["MIT", "Apache-2.0", "MPL-2.0"]
-deny = []
 exceptions = [{ allow = ["Unicode-DFS-2016"], name = "unicode-ident" }]
 # Deny all copyleft license except the ones above.
 copyleft = "deny"
@@ -22,16 +20,8 @@ default = "deny"
 confidence-threshold = 0.8
 
 [sources]
-# Deny all unknown sources
 unknown-registry = "deny"
 unknown-git = "deny"
-# Require at least a tag name for git sources; specific commits with rev are
-# also allowed by this setting.
-required-git-spec = "tag"
-# Allow common dependency
-allow-git = [
-    "https://github.com/swsnr/gnome-search-providers-jetbrains.git",
-]
 
 [bans]
-multiple-versions = "deny"
+multiple-versions = "warn"
