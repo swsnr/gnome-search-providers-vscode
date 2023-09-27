@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.12.0] – 2023-09-27
+
 ### Added
 - The systemd service supports `systemctl reload` now, to update the list of recent workspaces.
 
@@ -169,7 +171,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.3...v1.11.0
 [1.10.3]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.2...v1.10.3
 [1.10.2]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.1...v1.10.2
