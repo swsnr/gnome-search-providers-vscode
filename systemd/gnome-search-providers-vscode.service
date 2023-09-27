@@ -5,3 +5,4 @@ Description=VSCode workspaces search provider for Gnome shell
 Type=dbus
 BusName=de.swsnr.searchprovider.VSCode
 ExecStart=gnome-search-providers-vscode
+ExecReload=busctl --user call de.swsnr.searchprovider.VSCode / de.swsnr.searchprovider.ReloadAll ReloadAll

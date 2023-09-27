@@ -6,6 +6,9 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Added
+- The systemd service supports `systemctl reload` now, to update the list of recent workspaces.
+
 ## [1.11.0] – 2023-09-26
 
 ### Changed
