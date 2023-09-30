@@ -6,6 +6,9 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Added
+- Restore log control interface.
+
 ## [1.12.0] – 2023-09-27
 
 ### Added

@@ -9,12 +9,11 @@
 //! Gnome search provider for VSCode editors.
 
 use anyhow::{Context, Result};
-use std::fs::File;
-use std::os::fd::AsFd;
-use std::os::linux::fs::MetadataExt;
+use logcontrol_tracing::{PrettyLogControl1LayerFactory, TracingLogControl1};
+use logcontrol_zbus::{ConnectionBuilderExt, LogControl1};
 use tracing::{event, Level};
 use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::{fmt, EnvFilter, Registry};
+use tracing_subscriber::Registry;
 
 use crate::providers::PROVIDERS;
 use crate::reload::ReloadAll;
@@ -34,23 +33,6 @@ async fn tick(connection: zbus::Connection) {
     loop {
         connection.executor().tick().await
     }
-}
-
-/// Check whether this process is directly connected to the systemd journal.
-///
-/// We inspect `$JOURNAL_STREAM` and compare it against the device and inode numbers of
-/// stderr; see `systemd.exec(5)` for details.
-fn connected_to_journal() -> bool {
-    let var_os = std::env::var_os("JOURNAL_STREAM");
-    // TODO: We could perhaps do better, i.e. without duplicating the FD
-    let fd_text = std::io::stderr()
-        .as_fd()
-        .try_clone_to_owned()
-        .map(File::from)
-        .and_then(|f| f.metadata())
-        .ok()
-        .map(|m| format!("{}:{}", m.st_dev(), m.st_ino()).into());
-    var_os.as_ref().map(|os| os.to_string_lossy()) == fd_text
 }
 
 fn app() -> clap::Command {
@@ -80,20 +62,24 @@ fn main() -> Result<()> {
         }
         Ok(())
     } else {
-        // Setup tracing: If we're connected to systemd, directly log to the journal, otherwise log nicely to the TTY.
-        let subscriber = Registry::default().with(
-            EnvFilter::try_from_default_env()
-                .or_else(|_| EnvFilter::try_new("info"))
-                .unwrap(),
-        );
-        if connected_to_journal() {
-            let journal = tracing_journald::Layer::new()
-                .with_context(|| "Failed to contact journald for logging".to_string())?;
-            tracing::subscriber::set_global_default(subscriber.with(journal)).unwrap();
+        // Setup env filter for convenient log control on console
+        let env_filter = tracing_subscriber::EnvFilter::try_from_default_env().ok();
+        // If an env filter is set with $RUST_LOG use the lowest level as default for the control part,
+        // to make sure the env filter takes precedence initially.
+        let default_level = if env_filter.is_some() {
+            Level::TRACE
         } else {
-            tracing::subscriber::set_global_default(subscriber.with(fmt::layer().pretty()))
-                .unwrap();
-        }
+            Level::INFO
+        };
+        let (control, control_layer) =
+            TracingLogControl1::new_auto(PrettyLogControl1LayerFactory, default_level)
+                .with_context(|| "Failed to setup logging".to_string())?;
+
+        // Setup tracing: If we're connected to systemd, directly log to the journal, otherwise log nicely to the TTY.
+        tracing::subscriber::set_global_default(
+            Registry::default().with(env_filter).with(control_layer),
+        )
+        .unwrap();
         // Direct glib to rust log, and…
         glib::log_set_default_handler(glib::rust_log_handler);
         // …rust log to tracing.
@@ -158,6 +144,7 @@ fn main() -> Result<()> {
                     },
                 )?
                 .serve_at("/", ReloadAll)?
+                .serve_log_control(LogControl1::new(control))?
                 .name(BUSNAME)?
                 .build()
                 .await
