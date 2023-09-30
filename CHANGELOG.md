@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.13.0] – 2023-09-30
+
 ### Added
 - Restore log control interface.
 
@@ -177,7 +179,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.3...v1.11.0
 [1.10.3]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.10.2...v1.10.3
