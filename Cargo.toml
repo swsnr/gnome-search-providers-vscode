@@ -46,3 +46,4 @@ pre-release-replacements = [
     { file = "CHANGELOG.md", search = "\\[Unreleased\\]: ", replace = "[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/{{tag_name}}...HEAD\n[{{version}}]: ", exactly = 1 },
 ]
 publish = false
+verify = false
