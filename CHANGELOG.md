@@ -6,6 +6,12 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Changed
+- Check whether local workspaces actually exist on disk, to remove non-existing
+  workspaces from search results (see [GH-43]).
+
+[GH-43]: https://github.com/swsnr/gnome-search-providers-vscode/issues/43
+
 ## [1.13.0] – 2023-09-30
 
 ### Added
