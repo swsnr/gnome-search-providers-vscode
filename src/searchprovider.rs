@@ -10,7 +10,7 @@ use crate::storage::GlobalStorage;
 use crate::systemd;
 use crate::systemd::Systemd1ManagerProxy;
 use anyhow::{anyhow, Context, Result};
-use gio::prelude::*;
+use gio::{prelude::*, Cancellable};
 use glib::once_cell::unsync::Lazy;
 use glib::{Variant, VariantDict};
 use indexmap::IndexMap;
@@ -262,6 +262,19 @@ async fn launch_app_in_new_scope(
     })
 }
 
+/// Check whether the given workspace exists.
+///
+/// For `file://` workspaces we check whether the workspace exists.  For other
+/// schemes we simply assume that the workspace exists, because we have no
+/// deeper understanding of VSCode URLs.
+fn check_workspace_exists(url: &str) -> bool {
+    let file = gio::File::for_uri(url);
+    match file.uri_scheme().as_ref().map(|s| s.as_str()) {
+        Some("file") => file.query_exists(Cancellable::NONE),
+        _ => true,
+    }
+}
+
 /// Read recent workspaces for the given app from the given storage.
 fn read_recent_workspaces_from_storage(
     app_id: &AppId,
@@ -279,6 +292,7 @@ fn read_recent_workspaces_from_storage(
 
     let workspaces = workspace_urls
         .into_iter()
+        .filter(|url| check_workspace_exists(url))
         .filter_map(|url| match VSCodeRecentWorkspace::from_url(url) {
             Ok(item) => {
                 event!(Level::TRACE, "Found recent workspace at {}", &item.url);
