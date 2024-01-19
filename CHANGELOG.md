@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.15.0] – 2024-01-19
+
 ### Changed
 - Always refresh the list of workspaces when starting a search (see [GH-46]).
 
@@ -195,7 +197,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.14.0...HEAD
+[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.15.0...HEAD
+[1.15.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.11.0...v1.12.0
