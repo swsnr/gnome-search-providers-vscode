@@ -6,6 +6,14 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Changed
+- Always refresh the list of workspaces when starting a search (see [GH-46]).
+
+### Removed
+- DBus interface to reload workspaces as well as support for `systemctl reload` (see [GH-46]).
+
+[GH-46]: https://github.com/swsnr/gnome-search-providers-vscode/pull/46
+
 ## [1.14.0] – 2023-11-23
 
 ### Changed

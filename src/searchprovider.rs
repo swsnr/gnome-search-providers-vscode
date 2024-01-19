@@ -310,70 +310,6 @@ fn read_recent_workspaces_from_storage(
     Ok(workspaces)
 }
 
-#[derive(Debug)]
-pub struct VSCodeWorkspaceSearchProvider {
-    app: App,
-    recent_workspaces: IndexMap<String, VSCodeRecentWorkspace>,
-    storage: Mutex<GlobalStorage>,
-}
-
-impl VSCodeWorkspaceSearchProvider {
-    /// Create a new search provider for a jetbrains product.
-    ///
-    /// `app` describes the underlying app to launch items with, and `storage` is the global database
-    /// where VSCode stores its recent workspaces.
-    pub fn new(app: App, storage: GlobalStorage) -> Self {
-        Self {
-            app,
-            storage: Mutex::new(storage),
-            recent_workspaces: IndexMap::new(),
-        }
-    }
-
-    /// Get the underlying app for this VSCode variant..
-    pub fn app(&self) -> &App {
-        &self.app
-    }
-
-    /// Reload all recent workspaces provided by this search provider.
-    #[instrument(skip(self), fields(app_id = %self.app.id()))]
-    pub fn reload_recent_workspaces(&mut self) -> Result<()> {
-        self.recent_workspaces = read_recent_workspaces_from_storage(
-            self.app.id(),
-            &*self.storage.try_lock().map_err(|error| {
-                anyhow!(
-                    "Failed to lock global storage in search provider for app {}: {error}",
-                    &self.app.id()
-                )
-            })?,
-        )?;
-        Ok(())
-    }
-
-    #[instrument(skip(self, connection), fields(app_id = %self.app.id()))]
-    async fn launch_app_on_default_main_context(
-        &self,
-        connection: zbus::Connection,
-        uri: Option<String>,
-    ) -> zbus::fdo::Result<()> {
-        let app_id = self.app.id().clone();
-        let span = Span::current();
-        glib::MainContext::default()
-            .spawn_from_within(move || {
-                launch_app_in_new_scope(connection, app_id, uri.clone()).instrument(span)
-            })
-            .await
-            .map_err(|error| {
-                event!(
-                    Level::ERROR,
-                    %error,
-                    "Join from main loop failed: {error:#}",
-                );
-                zbus::fdo::Error::Failed(format!("Join from main loop failed: {error:#}",))
-            })?
-    }
-}
-
 /// Calculate how well `item` matches all of the given `terms`.
 ///
 /// If all terms match the name of the `item`, the item receives a base score of 10.
@@ -401,6 +337,88 @@ fn item_score(item: &VSCodeRecentWorkspace, terms: &[&str]) -> f64 {
         }
 }
 
+#[derive(Debug)]
+pub struct VSCodeWorkspaceSearchProvider {
+    app: App,
+    recent_workspaces: IndexMap<String, VSCodeRecentWorkspace>,
+    /// The storage to load workspaces from.
+    ///
+    /// Placed behind a mutex to make it Sync as required for the DBus interface.
+    /// However, we never actually acquire the lock, as we're only accessing this
+    /// from a &mut self context.
+    storage: Mutex<GlobalStorage>,
+}
+
+impl VSCodeWorkspaceSearchProvider {
+    /// Create a new search provider for a jetbrains product.
+    ///
+    /// `app` describes the underlying app to launch items with, and `storage` is the global database
+    /// where VSCode stores its recent workspaces.
+    pub fn new(app: App, storage: GlobalStorage) -> Self {
+        Self {
+            app,
+            storage: Mutex::new(storage),
+            recent_workspaces: IndexMap::new(),
+        }
+    }
+
+    /// Get the underlying app for this VSCode variant..
+    pub fn app(&self) -> &App {
+        &self.app
+    }
+
+    /// Reload all recent workspaces provided by this search provider.
+    #[instrument(skip(self), fields(app_id = %self.app.id()))]
+    pub fn reload_recent_workspaces(&mut self) -> Result<()> {
+        // We never acquire the the storage lock in fact, so it can't be poisoned,
+        // and we can conveniently ignore a poison error here.
+        let storage = self.storage.get_mut().unwrap();
+        self.recent_workspaces = read_recent_workspaces_from_storage(self.app.id(), storage)?;
+        Ok(())
+    }
+
+    /// Find all IDs matching terms, ordered by best match.
+    pub fn find_ids_by_terms(&self, terms: &[&str]) -> Vec<&str> {
+        let mut scored_ids = self
+            .recent_workspaces
+            .iter()
+            .filter_map(|(id, item)| {
+                let score = item_score(item, terms);
+                if 0.0 < score {
+                    Some((id.as_ref(), score))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+        scored_ids.sort_by_key(|(_, score)| -((score * 1000.0) as i64));
+        scored_ids.into_iter().map(|(id, _)| id).collect()
+    }
+
+    #[instrument(skip(self, connection), fields(app_id = %self.app.id()))]
+    async fn launch_app_on_default_main_context(
+        &self,
+        connection: zbus::Connection,
+        uri: Option<String>,
+    ) -> zbus::fdo::Result<()> {
+        let app_id = self.app.id().clone();
+        let span = Span::current();
+        glib::MainContext::default()
+            .spawn_from_within(move || {
+                launch_app_in_new_scope(connection, app_id, uri.clone()).instrument(span)
+            })
+            .await
+            .map_err(|error| {
+                event!(
+                    Level::ERROR,
+                    %error,
+                    "Join from main loop failed: {error:#}",
+                );
+                zbus::fdo::Error::Failed(format!("Join from main loop failed: {error:#}",))
+            })?
+    }
+}
+
 /// The DBus interface of the search provider.
 ///
 /// See <https://developer.gnome.org/SearchProvider/> for information.
@@ -412,22 +430,17 @@ impl VSCodeWorkspaceSearchProvider {
     /// and should return an array of result IDs. gnome-shell will call GetResultMetas for (some) of these result
     /// IDs to get details about the result that can be be displayed in the result list.
     #[instrument(skip(self), fields(app_id = %self.app.id()))]
-    fn get_initial_result_set(&self, terms: Vec<&str>) -> Vec<&str> {
+    fn get_initial_result_set(&mut self, terms: Vec<&str>) -> Vec<&str> {
+        event!(Level::DEBUG, "Reloading recent workspaces");
+        if let Err(error) = self.reload_recent_workspaces() {
+            event!(
+                Level::ERROR,
+                "Failed to reload recent workspaces: {}",
+                error
+            );
+        }
         event!(Level::DEBUG, "Searching for {:?}", terms);
-        let mut scored_ids = self
-            .recent_workspaces
-            .iter()
-            .filter_map(|(id, item)| {
-                let score = item_score(item, &terms);
-                if 0.0 < score {
-                    Some((id.as_ref(), score))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-        scored_ids.sort_by_key(|(_, score)| -((score * 1000.0) as i64));
-        let ids = scored_ids.into_iter().map(|(id, _)| id).collect();
+        let ids = self.find_ids_by_terms(&terms);
         event!(Level::DEBUG, "Found ids {:?}", ids);
         ids
     }
@@ -447,7 +460,7 @@ impl VSCodeWorkspaceSearchProvider {
         );
         // For simplicity just run the overall search again, and filter out everything not already matched.
         let ids = self
-            .get_initial_result_set(terms)
+            .find_ids_by_terms(&terms)
             .into_iter()
             .filter(|id| previous_results.contains(id))
             .collect();

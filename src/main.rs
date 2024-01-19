@@ -16,12 +16,10 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;
 
 use crate::providers::PROVIDERS;
-use crate::reload::ReloadAll;
 use crate::searchprovider::{App, AppId, VSCodeWorkspaceSearchProvider};
 use crate::storage::GlobalStorage;
 
 mod providers;
-mod reload;
 mod searchprovider;
 mod storage;
 mod systemd;
@@ -123,9 +121,8 @@ fn main() -> Result<()> {
                                 )
                             })?;
                         let app_id = AppId::from(&gio_app);
-                        let mut search_provider =
+                        let search_provider =
                             VSCodeWorkspaceSearchProvider::new(App::from(gio_app), storage);
-                        let _ = search_provider.reload_recent_workspaces();
                         let path = provider.objpath();
                         event!(
                             Level::DEBUG,
@@ -143,7 +140,6 @@ fn main() -> Result<()> {
                         })
                     },
                 )?
-                .serve_at("/", ReloadAll)?
                 .serve_log_control(LogControl1::new(control))?
                 .name(BUSNAME)?
                 .build()
