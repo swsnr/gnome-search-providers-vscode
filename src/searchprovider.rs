@@ -11,7 +11,6 @@ use crate::systemd;
 use crate::systemd::Systemd1ManagerProxy;
 use anyhow::{anyhow, Context, Result};
 use gio::{prelude::*, Cancellable};
-use glib::once_cell::unsync::Lazy;
 use glib::{Variant, VariantDict};
 use indexmap::IndexMap;
 use std::collections::HashMap;
@@ -195,6 +194,41 @@ async fn move_to_scope(
     Ok((name, scope_object_path))
 }
 
+/// Create a GIO launch context.
+///
+/// The context moves every application launched through it to a dedicated systemd scope.
+fn create_launch_context(connection: zbus::Connection) -> gio::AppLaunchContext {
+    let context = gio::AppLaunchContext::new();
+    context.connect_launched(move |_, app, platform_data| {
+        let app_id = app.id().unwrap().to_string();
+        let _guard = span!(Level::INFO, "launched", %app_id, %platform_data).entered();
+        event!(
+            Level::TRACE,
+            "App {} launched with platform_data: {:?}",
+            app_id,
+            platform_data
+        );
+        if let Some(pid) = get_pid(platform_data) {
+            event!(Level::INFO, "App {} launched with PID {pid}", app.id().unwrap());
+            let app_name = app.id().unwrap().to_string();
+            let connection_inner = connection.clone();
+            glib::MainContext::ref_thread_default().spawn(
+                async move {
+                    match move_to_scope(&connection_inner, &app_name, pid as u32).await {
+                        Err(err) => {
+                            event!(Level::ERROR, "Failed to move running process {pid} of app {app_name} into new systemd scope: {err}");
+                        },
+                        Ok((name, path)) => {
+                            event!(Level::INFO, "Moved running process {pid} of app {app_name} into new systemd scope {name} at {}", path.into_inner());
+                        },
+                    }
+                }.in_current_span(),
+            );
+        }
+    });
+    context
+}
+
 /// Launch the given app, optionally passing a given URI.
 ///
 /// Move the launched app to a dedicated systemd scope for resource control, and return the result
@@ -205,38 +239,7 @@ async fn launch_app_in_new_scope(
     app_id: AppId,
     uri: Option<String>,
 ) -> zbus::fdo::Result<()> {
-    let context = Lazy::new(|| {
-        let context = gio::AppLaunchContext::new();
-        context.connect_launched(move |_, app, platform_data| {
-            let app_id = app.id().unwrap().to_string();
-            let _guard = span!(Level::INFO, "launched", %app_id, %platform_data).entered();
-            event!(
-                Level::TRACE,
-                "App {} launched with platform_data: {:?}",
-                app_id,
-                platform_data
-            );
-            if let Some(pid) = get_pid(platform_data) {
-                event!(Level::INFO, "App {} launched with PID {pid}", app.id().unwrap());
-                let app_name = app.id().unwrap().to_string();
-                let connection_inner = connection.clone();
-                glib::MainContext::ref_thread_default().spawn(
-                    async move {
-                        match move_to_scope(&connection_inner, &app_name, pid as u32).await {
-                            Err(err) => {
-                                event!(Level::ERROR, "Failed to move running process {pid} of app {app_name} into new systemd scope: {err}");
-                            },
-                            Ok((name, path)) => {
-                                event!(Level::INFO, "Moved running process {pid} of app {app_name} into new systemd scope {name} at {}", path.into_inner());
-                            },
-                        }
-                    }.in_current_span(),
-                );
-            }
-        });
-        context
-    });
-
+    let context = create_launch_context(connection);
     let app = gio::DesktopAppInfo::try_from(&app_id).map_err(|error| {
         event!(
             Level::ERROR,
@@ -246,8 +249,8 @@ async fn launch_app_in_new_scope(
         zbus::fdo::Error::Failed(format!("Failed to find app {app_id}: {error}"))
     })?;
     match uri {
-        None => app.launch_uris_future(&[], Some(&*context)),
-        Some(ref uri) => app.launch_uris_future(&[uri], Some(&*context)),
+        None => app.launch_uris_future(&[], Some(&context)),
+        Some(ref uri) => app.launch_uris_future(&[uri], Some(&context)),
     }
     .await
     .map_err(|error| {

@@ -17,8 +17,8 @@ publish = false
 [dependencies]
 anyhow = { version = "1.0.69", default-features = false, features = ["std", "backtrace"] }
 clap = { version = "4.1.7", default-features = false, features = ["std", "cargo", ] }
-gio = { version = "0.18.2", features = ["v2_60"] }
-glib = { version = "0.18.2", features = ["log"] }
+gio = { version = "0.19.0", features = ["v2_60"] }
+glib = { version = "0.19.0", features = ["log"] }
 indexmap = "2.0.0"
 libc = "0.2.148"
 rusqlite = { version = "0.30.0", default-features = false, features = ["serde_json"] }
