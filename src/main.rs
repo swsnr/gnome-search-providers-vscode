@@ -19,6 +19,7 @@ use crate::providers::PROVIDERS;
 use crate::searchprovider::{App, AppId, VSCodeWorkspaceSearchProvider};
 use crate::storage::GlobalStorage;
 
+mod launch;
 mod providers;
 mod searchprovider;
 mod storage;
