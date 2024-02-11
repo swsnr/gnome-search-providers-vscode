@@ -270,7 +270,7 @@ impl VSCodeWorkspaceSearchProvider {
     }
 
     /// Find all IDs matching terms, ordered by best match.
-    pub fn find_ids_by_terms(&self, terms: &[&str]) -> Vec<&str> {
+    fn find_ids_by_terms(&self, terms: &[&str]) -> Vec<&str> {
         let mut scored_ids = self
             .recent_workspaces
             .iter()
