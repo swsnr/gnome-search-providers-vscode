@@ -261,7 +261,7 @@ impl VSCodeWorkspaceSearchProvider {
 
     /// Reload all recent workspaces provided by this search provider.
     #[instrument(skip(self), fields(app_id = %self.app.id()))]
-    pub fn reload_recent_workspaces(&mut self) -> Result<()> {
+    fn reload_recent_workspaces(&mut self) -> Result<()> {
         // We never acquire the the storage lock in fact, so it can't be poisoned,
         // and we can conveniently ignore a poison error here.
         let storage = self.storage.get_mut().unwrap();
