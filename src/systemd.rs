@@ -6,13 +6,13 @@
 
 //! Systemd utilities.
 
-use zbus::dbus_proxy;
+use zbus::proxy;
 use zbus::zvariant::{OwnedObjectPath, Value};
 
 /// The systemd manager DBUS API.
 ///
 /// See <https://www.freedesktop.org/wiki/Software/systemd/dbus/>
-#[dbus_proxy(
+#[proxy(
     interface = "org.freedesktop.systemd1.Manager",
     default_service = "org.freedesktop.systemd1",
     default_path = "/org/freedesktop/systemd1"

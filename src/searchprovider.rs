@@ -16,7 +16,7 @@ use std::fmt::{Display, Formatter};
 use std::sync::Mutex;
 use tracing::{event, instrument, Level, Span};
 use tracing_futures::Instrument;
-use zbus::{dbus_interface, zvariant};
+use zbus::{interface, zvariant};
 
 /// The desktop ID of an app.
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -314,7 +314,7 @@ impl VSCodeWorkspaceSearchProvider {
 /// The DBus interface of the search provider.
 ///
 /// See <https://developer.gnome.org/SearchProvider/> for information.
-#[dbus_interface(name = "org.gnome.Shell.SearchProvider2")]
+#[interface(name = "org.gnome.Shell.SearchProvider2")]
 impl VSCodeWorkspaceSearchProvider {
     /// Starts a search.
     ///
