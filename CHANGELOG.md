@@ -6,6 +6,11 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+### Changed
+- Decode encoded URLs in search provider results (see [GH-48]).
+
+[GH-48]: https://github.com/swsnr/gnome-search-providers-vscode/pull/48
+
 ## [1.15.0] – 2024-01-19
 
 ### Changed

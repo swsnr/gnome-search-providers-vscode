@@ -11,11 +11,13 @@ use crate::storage::GlobalStorage;
 use anyhow::{anyhow, Context, Result};
 use gio::{prelude::*, Cancellable};
 use indexmap::IndexMap;
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::sync::Mutex;
 use tracing::{event, instrument, Level, Span};
 use tracing_futures::Instrument;
+use urlencoding::decode;
 use zbus::{interface, zvariant};
 
 /// The desktop ID of an app.
@@ -99,15 +101,23 @@ pub struct VSCodeRecentWorkspace {
     /// The human readable name of a workspace, as extracted from the `url`.
     name: String,
 
+    /// The pretty URL of this workspace.
+    pretty_url: Option<String>,
+
     /// The workspace URL, as read from the global storage of VSCode.
     url: String,
 }
 
 impl VSCodeRecentWorkspace {
     pub fn from_url(url: String) -> Result<VSCodeRecentWorkspace> {
-        if let Some(name) = url.split('/').last() {
+        let pretty_url = decode(&url).ok().and_then(|s| match s {
+            Cow::Borrowed(_) => None,
+            Cow::Owned(v) => Some(v),
+        });
+        if let Some(name) = pretty_url.as_ref().unwrap_or(&url).split('/').last() {
             let item = VSCodeRecentWorkspace {
                 name: name.to_string(),
+                pretty_url,
                 url,
             };
             event!(Level::TRACE, "Found recent workspace item {:?}", item);
@@ -115,6 +125,11 @@ impl VSCodeRecentWorkspace {
         } else {
             Err(anyhow!("Failed to extract workspace name from URL {}", url))
         }
+    }
+
+    /// Get the pretty, i.e. decoded URL of this workspace.
+    fn pretty_url(&self) -> &str {
+        self.pretty_url.as_ref().unwrap_or(&self.url)
     }
 }
 
@@ -212,7 +227,7 @@ fn read_recent_workspaces_from_storage(
 /// All matches are done on the lowercase text, i.e. case-insensitive.
 fn item_score(item: &VSCodeRecentWorkspace, terms: &[&str]) -> f64 {
     let name = item.name.to_lowercase();
-    let directory = item.url.to_lowercase();
+    let directory = item.pretty_url().to_lowercase();
     terms
         .iter()
         .try_fold(0.0, |score, term| {
@@ -254,7 +269,7 @@ impl VSCodeWorkspaceSearchProvider {
         }
     }
 
-    /// Get the underlying app for this VSCode variant..
+    /// Get the underlying app for this VSCode variant.
     pub fn app(&self) -> &App {
         &self.app
     }
@@ -389,7 +404,7 @@ impl VSCodeWorkspaceSearchProvider {
                 meta.insert("name".to_string(), item.name.clone().into());
                 event!(Level::DEBUG, %item_id, "Using icon {}", self.app.icon());
                 meta.insert("gicon".to_string(), self.app.icon().to_string().into());
-                meta.insert("description".to_string(), item.url.clone().into());
+                meta.insert("description".to_string(), item.pretty_url().into());
                 metas.push(meta);
             }
         }
