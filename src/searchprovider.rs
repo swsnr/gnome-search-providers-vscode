@@ -254,7 +254,7 @@ impl VSCodeWorkspaceSearchProvider {
         }
     }
 
-    /// Get the underlying app for this VSCode variant..
+    /// Get the underlying app for this VSCode variant.
     pub fn app(&self) -> &App {
         &self.app
     }
