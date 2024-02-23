@@ -6,6 +6,8 @@ and this project doesn't care about versioning.
 
 ## [Unreleased]
 
+## [1.16.0] – 2024-02-23
+
 ### Changed
 - Decode encoded URLs in search provider results (see [GH-48]).
 
@@ -202,7 +204,8 @@ and this project doesn't care about versioning.
 
 Initial release with support for workspaces of Code - OSS from Arch Linux.
 
-[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.15.0...HEAD
+[Unreleased]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.16.0...HEAD
+[1.16.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.15.0...v1.16.0
 [1.15.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/swsnr/gnome-search-providers-vscode/compare/v1.12.0...v1.13.0
