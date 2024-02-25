@@ -19,7 +19,7 @@ Under the hood this is a small systemd user service which implements the [search
 
 ### Packages & binaries
 
-- [AUR package](https://aur.archlinux.org/packages/gnome-search-providers-vscode/)
+I provide binary packages for Archlinux at [home:swsnr:owned](https://build.opensuse.org/repositories/home:swsnr:owned).
 
 ### From source
 
