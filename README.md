@@ -1,5 +1,7 @@
 # Gnome search provider for VSCode workspaces
 
+**I no longer use or maintain this code.**
+
 Add recent workspaces of various VSCode variants to Gnome search.
 
 ![](./screenshot.png)
