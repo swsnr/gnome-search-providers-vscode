@@ -7,7 +7,7 @@ repository = "https://github.com/swsnr/gnome-search-providers-vscode"
 version = "1.16.0"
 license = "MPL-2.0"
 authors = ["Sebastian Wiesner <sebastian@swsnr.de>"]
-rust-version = "1.75"
+rust-version = "1.81"
 edition = "2021"
 # We don't publish this to crates.io; you can't install it with cargo install
 # because you'd miss the required service and configuration files, and you
@@ -15,15 +15,15 @@ edition = "2021"
 publish = false
 
 [dependencies]
-anyhow = { version = "1.0.69", default-features = false, features = ["std", "backtrace"] }
-clap = { version = "4.1.7", default-features = false, features = ["std", "cargo", ] }
-gio = { version = "0.19.0", features = ["v2_60"] }
-glib = { version = "0.19.0", features = ["log"] }
-indexmap = "2.0.0"
-libc = "0.2.148"
-rusqlite = { version = "0.30.0", default-features = false, features = ["serde_json"] }
-serde = { version = "1.0.152", default-features = false, features = ["derive"] }
-serde_json = { version = "1.0.93", default-features = false }
+anyhow = { version = "1.0.89", default-features = false, features = ["std", "backtrace"] }
+clap = { version = "4.5.18", default-features = false, features = ["std", "cargo", ] }
+gio = { version = "0.20.1", features = ["v2_60"] }
+glib = { version = "0.20.3", features = ["log"] }
+indexmap = "2.5.0"
+libc = "0.2.158"
+rusqlite = { version = "0.32.1", default-features = false, features = ["serde_json"] }
+serde = { version = "1.0.210", default-features = false, features = ["derive"] }
+serde_json = { version = "1.0.128", default-features = false }
 tracing = { version = "0.1.37", default-features = false, features = ["attributes"] }
 tracing-futures = { version = "0.2.5", default-features = false, features = ["std-future"] }
 tracing-log = { version = "0.2.0", default-features = false, features = ["log-tracer"] }
@@ -31,10 +31,10 @@ tracing-subscriber = { version = "0.3.17", default-features = false, features = 
 logcontrol-zbus = "2.0.0"
 logcontrol-tracing = "0.2.0"
 urlencoding = { version = "2.1.3", default-features = false }
-zbus = { version = "4.0.0", default-features = false, features = ["async-io"] }
+zbus = { version = "4.4.0", default-features = false, features = ["async-io"] }
 
 [dev-dependencies]
-pretty_assertions = "1.3.0"
+pretty_assertions = "1.4.1"
 configparser = "3.0.2"
 globwalk = "0.9.0"
 
