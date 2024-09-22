@@ -33,30 +33,6 @@ pub trait Systemd1Manager {
     ) -> zbus::Result<OwnedObjectPath>;
 }
 
-/// Properties for a new systemd scope.
-#[derive(Debug)]
-pub struct ScopeProperties<'a> {
-    /// The prefix to prepend before the scope name.
-    ///
-    /// This string is prepended **literally**, and not escaped.
-    ///
-    /// It must be a valid string for a systemd unit.
-    pub prefix: &'a str,
-    /// The name for the scope.
-    ///
-    /// This string gets escaped for systemd and can be arbitrary.
-    pub name: &'a str,
-    /// The optional description for the unit.
-    ///
-    /// This is used by systemd (and other UIs) as the label for the unit,
-    /// so this string should identify the unit rather than describe it, despite the name.
-    ///
-    /// See `systemd.unit(5)` for more information.
-    pub description: Option<&'a str>,
-    /// The optional documentation URLs for the unit.
-    pub documentation: Vec<&'a str>,
-}
-
 /// Escape a systemd unit name.
 ///
 /// See section "STRING ESCAPING FOR INCLUSION IN UNIT NAMES" in `systemd.unit(5)`

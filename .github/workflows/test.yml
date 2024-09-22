@@ -4,24 +4,15 @@ on:
   push:
     # Don't run CI for tags; there's always a branch for the tag as well so
     # there's no point in testing it separately
-    tags_ignore: '*'
+    tags-ignore: '*'
   pull_request:
 
 jobs:
-  rustfmt:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-      - run: cargo fmt -- --check
-
   cargo-deny:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: EmbarkStudios/cargo-deny-action@v1
+    - uses: EmbarkStudios/cargo-deny-action@v2
 
   test:
     runs-on: ubuntu-latest
@@ -29,7 +20,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy
+          components: clippy, rustfmt
+      - run: cargo fmt -- --check
       - run: cargo build --all-targets --locked
       - run: cargo clippy --all-targets --locked
       - run: cargo test --locked

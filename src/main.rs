@@ -162,19 +162,27 @@ fn main() -> Result<()> {
         // Quit our mainloop on SIGTERM and SIGINT
         glib::source::unix_signal_add(
             libc::SIGTERM,
-            glib::clone!(@strong mainloop =>  move || {
-                event!(Level::DEBUG, "Terminated, quitting mainloop");
-                mainloop.quit();
-                glib::ControlFlow::Break
-            }),
+            glib::clone!(
+                #[strong]
+                mainloop,
+                move || {
+                    event!(Level::DEBUG, "Terminated, quitting mainloop");
+                    mainloop.quit();
+                    glib::ControlFlow::Break
+                }
+            ),
         );
         glib::source::unix_signal_add(
             libc::SIGINT,
-            glib::clone!(@strong mainloop =>  move || {
-                event!(Level::DEBUG, "Interrupted, quitting mainloop");
-                mainloop.quit();
-                glib::ControlFlow::Break
-            }),
+            glib::clone!(
+                #[strong]
+                mainloop,
+                move || {
+                    event!(Level::DEBUG, "Interrupted, quitting mainloop");
+                    mainloop.quit();
+                    glib::ControlFlow::Break
+                },
+            ),
         );
 
         mainloop.run();
