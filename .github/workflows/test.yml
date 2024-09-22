@@ -8,15 +8,6 @@ on:
   pull_request:
 
 jobs:
-  rustfmt:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-      - run: cargo fmt -- --check
-
   cargo-deny:
     runs-on: ubuntu-latest
     steps:
@@ -29,7 +20,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy
+          components: clippy, rustfmt
+      - run: cargo fmt -- --check
       - run: cargo build --all-targets --locked
       - run: cargo clippy --all-targets --locked
       - run: cargo test --locked
