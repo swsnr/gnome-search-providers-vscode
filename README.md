@@ -4,10 +4,6 @@
 
 Add recent workspaces of various VSCode variants to Gnome search.
 
-![](./screenshot.png)
-
-Supports
-
 - Code OSS (Arch Linux)
 - VSCodium
 - Visual Studio Code (AUR package)
@@ -21,7 +17,7 @@ Under the hood this is a small systemd user service which implements the [search
 
 ### Packages & binaries
 
-I provide binary packages for Archlinux at [home:swsnr:owned](https://build.opensuse.org/repositories/home:swsnr:owned).
+I provide a binary package at [home:swsnr](https://build.opensuse.org/repositories/home:swsnr).
 
 ### From source
 
