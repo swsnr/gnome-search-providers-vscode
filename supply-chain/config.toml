@@ -4,32 +4,15 @@
 [cargo-vet]
 version = "0.10"
 
+[imports.google]
+url = "https://raw.githubusercontent.com/google/supply-chain/main/audits.toml"
+
 [policy.gnome-search-providers-vscode]
 criteria = "safe-to-run"
 notes = "Just a local service with little to no external exposure, so safe-to-run is enough"
 
-[[exemptions.addr2line]]
-version = "0.21.0"
-criteria = "safe-to-run"
-
-[[exemptions.adler]]
-version = "1.0.2"
-criteria = "safe-to-run"
-
 [[exemptions.ahash]]
 version = "0.8.8"
-criteria = "safe-to-run"
-
-[[exemptions.aho-corasick]]
-version = "1.1.2"
-criteria = "safe-to-run"
-
-[[exemptions.anstyle]]
-version = "1.0.8"
-criteria = "safe-to-run"
-
-[[exemptions.anyhow]]
-version = "1.0.89"
 criteria = "safe-to-run"
 
 [[exemptions.async-broadcast]]
@@ -84,26 +67,6 @@ criteria = "safe-to-run"
 version = "1.1.2"
 criteria = "safe-to-run"
 
-[[exemptions.autocfg]]
-version = "1.1.0"
-criteria = "safe-to-run"
-
-[[exemptions.backtrace]]
-version = "0.3.69"
-criteria = "safe-to-run"
-
-[[exemptions.bitflags]]
-version = "1.3.2"
-criteria = "safe-to-run"
-
-[[exemptions.bitflags]]
-version = "2.6.0"
-criteria = "safe-to-run"
-
-[[exemptions.block-buffer]]
-version = "0.10.4"
-criteria = "safe-to-run"
-
 [[exemptions.blocking]]
 version = "1.6.1"
 criteria = "safe-to-run"
@@ -112,32 +75,12 @@ criteria = "safe-to-run"
 version = "1.9.0"
 criteria = "safe-to-run"
 
-[[exemptions.cc]]
-version = "1.0.83"
-criteria = "safe-to-run"
-
 [[exemptions.cfg-expr]]
 version = "0.17.0"
 criteria = "safe-to-run"
 
-[[exemptions.cfg-if]]
-version = "1.0.0"
-criteria = "safe-to-run"
-
 [[exemptions.cfg_aliases]]
 version = "0.2.1"
-criteria = "safe-to-run"
-
-[[exemptions.clap]]
-version = "4.5.18"
-criteria = "safe-to-run"
-
-[[exemptions.clap_builder]]
-version = "4.5.18"
-criteria = "safe-to-run"
-
-[[exemptions.clap_lex]]
-version = "0.7.0"
 criteria = "safe-to-run"
 
 [[exemptions.concurrent-queue]]
@@ -188,14 +131,6 @@ criteria = "safe-to-run"
 version = "0.7.9"
 criteria = "safe-to-run"
 
-[[exemptions.equivalent]]
-version = "1.0.1"
-criteria = "safe-to-run"
-
-[[exemptions.errno]]
-version = "0.3.8"
-criteria = "safe-to-run"
-
 [[exemptions.event-listener]]
 version = "2.5.3"
 criteria = "safe-to-run"
@@ -214,10 +149,6 @@ criteria = "safe-to-run"
 
 [[exemptions.event-listener-strategy]]
 version = "0.5.0"
-criteria = "safe-to-run"
-
-[[exemptions.fallible-iterator]]
-version = "0.3.0"
 criteria = "safe-to-run"
 
 [[exemptions.fallible-streaming-iterator]]
@@ -268,10 +199,6 @@ criteria = "safe-to-run"
 version = "0.14.7"
 criteria = "safe-to-run"
 
-[[exemptions.getrandom]]
-version = "0.2.12"
-criteria = "safe-to-run"
-
 [[exemptions.gimli]]
 version = "0.28.1"
 criteria = "safe-to-run"
@@ -308,20 +235,8 @@ criteria = "safe-to-run"
 version = "0.20.1"
 criteria = "safe-to-run"
 
-[[exemptions.hashbrown]]
-version = "0.14.3"
-criteria = "safe-to-run"
-
 [[exemptions.hashlink]]
 version = "0.9.1"
-criteria = "safe-to-run"
-
-[[exemptions.heck]]
-version = "0.5.0"
-criteria = "safe-to-run"
-
-[[exemptions.hex]]
-version = "0.4.3"
 criteria = "safe-to-run"
 
 [[exemptions.ignore]]
@@ -332,14 +247,6 @@ criteria = "safe-to-run"
 version = "2.5.0"
 criteria = "safe-to-run"
 
-[[exemptions.itoa]]
-version = "1.0.10"
-criteria = "safe-to-run"
-
-[[exemptions.lazy_static]]
-version = "1.4.0"
-criteria = "safe-to-run"
-
 [[exemptions.libc]]
 version = "0.2.158"
 criteria = "safe-to-run"
@@ -348,16 +255,8 @@ criteria = "safe-to-run"
 version = "0.30.1"
 criteria = "safe-to-run"
 
-[[exemptions.linux-raw-sys]]
-version = "0.4.13"
-criteria = "safe-to-run"
-
 [[exemptions.lock_api]]
 version = "0.4.11"
-criteria = "safe-to-run"
-
-[[exemptions.log]]
-version = "0.4.20"
 criteria = "safe-to-run"
 
 [[exemptions.logcontrol]]
@@ -380,10 +279,6 @@ criteria = "safe-to-run"
 version = "2.7.4"
 criteria = "safe-to-run"
 
-[[exemptions.memoffset]]
-version = "0.9.0"
-criteria = "safe-to-run"
-
 [[exemptions.miniz_oxide]]
 version = "0.7.2"
 criteria = "safe-to-run"
@@ -400,10 +295,6 @@ criteria = "safe-to-run"
 version = "0.32.2"
 criteria = "safe-to-run"
 
-[[exemptions.once_cell]]
-version = "1.19.0"
-criteria = "safe-to-run"
-
 [[exemptions.ordered-stream]]
 version = "0.2.0"
 criteria = "safe-to-run"
@@ -414,10 +305,6 @@ criteria = "safe-to-run"
 
 [[exemptions.parking]]
 version = "2.2.0"
-criteria = "safe-to-run"
-
-[[exemptions.parking_lot]]
-version = "0.12.1"
 criteria = "safe-to-run"
 
 [[exemptions.parking_lot_core]]
@@ -432,14 +319,6 @@ criteria = "safe-to-run"
 version = "1.1.4"
 criteria = "safe-to-run"
 
-[[exemptions.pin-project-lite]]
-version = "0.2.13"
-criteria = "safe-to-run"
-
-[[exemptions.pin-utils]]
-version = "0.1.0"
-criteria = "safe-to-run"
-
 [[exemptions.piper]]
 version = "0.2.1"
 criteria = "safe-to-run"
@@ -452,10 +331,6 @@ criteria = "safe-to-run"
 version = "3.4.0"
 criteria = "safe-to-run"
 
-[[exemptions.ppv-lite86]]
-version = "0.2.17"
-criteria = "safe-to-run"
-
 [[exemptions.pretty_assertions]]
 version = "1.4.1"
 criteria = "safe-to-run"
@@ -464,56 +339,20 @@ criteria = "safe-to-run"
 version = "3.1.0"
 criteria = "safe-to-run"
 
-[[exemptions.proc-macro2]]
-version = "1.0.86"
-criteria = "safe-to-run"
-
-[[exemptions.quote]]
-version = "1.0.37"
-criteria = "safe-to-run"
-
-[[exemptions.rand]]
-version = "0.8.5"
-criteria = "safe-to-run"
-
-[[exemptions.rand_chacha]]
-version = "0.3.1"
-criteria = "safe-to-run"
-
-[[exemptions.rand_core]]
-version = "0.6.4"
-criteria = "safe-to-run"
-
 [[exemptions.redox_syscall]]
 version = "0.4.1"
-criteria = "safe-to-run"
-
-[[exemptions.regex]]
-version = "1.10.3"
 criteria = "safe-to-run"
 
 [[exemptions.regex-automata]]
 version = "0.1.10"
 criteria = "safe-to-run"
 
-[[exemptions.regex-automata]]
-version = "0.4.5"
-criteria = "safe-to-run"
-
 [[exemptions.regex-syntax]]
 version = "0.6.29"
 criteria = "safe-to-run"
 
-[[exemptions.regex-syntax]]
-version = "0.8.2"
-criteria = "safe-to-run"
-
 [[exemptions.rusqlite]]
 version = "0.32.1"
-criteria = "safe-to-run"
-
-[[exemptions.rustc-demangle]]
-version = "0.1.23"
 criteria = "safe-to-run"
 
 [[exemptions.rustix]]
@@ -524,24 +363,8 @@ criteria = "safe-to-run"
 version = "1.0.16"
 criteria = "safe-to-run"
 
-[[exemptions.same-file]]
-version = "1.0.6"
-criteria = "safe-to-run"
-
 [[exemptions.scopeguard]]
 version = "1.2.0"
-criteria = "safe-to-run"
-
-[[exemptions.serde]]
-version = "1.0.210"
-criteria = "safe-to-run"
-
-[[exemptions.serde_derive]]
-version = "1.0.210"
-criteria = "safe-to-run"
-
-[[exemptions.serde_json]]
-version = "1.0.128"
 criteria = "safe-to-run"
 
 [[exemptions.serde_repr]]
@@ -570,14 +393,6 @@ criteria = "safe-to-run"
 
 [[exemptions.smallvec]]
 version = "1.13.1"
-criteria = "safe-to-run"
-
-[[exemptions.static_assertions]]
-version = "1.1.0"
-criteria = "safe-to-run"
-
-[[exemptions.syn]]
-version = "2.0.77"
 criteria = "safe-to-run"
 
 [[exemptions.system-deps]]
@@ -632,10 +447,6 @@ criteria = "safe-to-run"
 version = "0.1.32"
 criteria = "safe-to-run"
 
-[[exemptions.tracing-futures]]
-version = "0.2.5"
-criteria = "safe-to-run"
-
 [[exemptions.tracing-journald]]
 version = "0.3.0"
 criteria = "safe-to-run"
@@ -656,10 +467,6 @@ criteria = "safe-to-run"
 version = "1.1.0"
 criteria = "safe-to-run"
 
-[[exemptions.unicode-ident]]
-version = "1.0.12"
-criteria = "safe-to-run"
-
 [[exemptions.urlencoding]]
 version = "2.1.3"
 criteria = "safe-to-run"
@@ -676,10 +483,6 @@ criteria = "safe-to-run"
 version = "0.2.0"
 criteria = "safe-to-run"
 
-[[exemptions.version_check]]
-version = "0.9.4"
-criteria = "safe-to-run"
-
 [[exemptions.walkdir]]
 version = "2.4.0"
 criteria = "safe-to-run"
@@ -688,16 +491,8 @@ criteria = "safe-to-run"
 version = "0.11.0+wasi-snapshot-preview1"
 criteria = "safe-to-run"
 
-[[exemptions.winapi]]
-version = "0.3.9"
-criteria = "safe-to-run"
-
 [[exemptions.winapi-i686-pc-windows-gnu]]
 version = "0.4.0"
-criteria = "safe-to-run"
-
-[[exemptions.winapi-util]]
-version = "0.1.6"
 criteria = "safe-to-run"
 
 [[exemptions.winapi-x86_64-pc-windows-gnu]]
@@ -810,14 +605,6 @@ criteria = "safe-to-run"
 
 [[exemptions.zbus_names]]
 version = "3.0.0"
-criteria = "safe-to-run"
-
-[[exemptions.zerocopy]]
-version = "0.7.32"
-criteria = "safe-to-run"
-
-[[exemptions.zerocopy-derive]]
-version = "0.7.32"
 criteria = "safe-to-run"
 
 [[exemptions.zvariant]]
