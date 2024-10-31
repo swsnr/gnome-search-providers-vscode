@@ -4,6 +4,9 @@
 [cargo-vet]
 version = "0.10"
 
+[imports.bytecode-alliance]
+url = "https://raw.githubusercontent.com/bytecodealliance/wasmtime/main/supply-chain/audits.toml"
+
 [imports.google]
 url = "https://raw.githubusercontent.com/google/supply-chain/main/audits.toml"
 
@@ -97,10 +100,6 @@ criteria = "safe-to-run"
 
 [[exemptions.crossbeam-deque]]
 version = "0.8.5"
-criteria = "safe-to-run"
-
-[[exemptions.crossbeam-epoch]]
-version = "0.9.18"
 criteria = "safe-to-run"
 
 [[exemptions.crossbeam-utils]]
@@ -247,10 +246,6 @@ criteria = "safe-to-run"
 version = "2.5.0"
 criteria = "safe-to-run"
 
-[[exemptions.libc]]
-version = "0.2.158"
-criteria = "safe-to-run"
-
 [[exemptions.libsqlite3-sys]]
 version = "0.30.1"
 criteria = "safe-to-run"
@@ -271,10 +266,6 @@ criteria = "safe-to-run"
 version = "2.0.0"
 criteria = "safe-to-run"
 
-[[exemptions.matchers]]
-version = "0.1.0"
-criteria = "safe-to-run"
-
 [[exemptions.memchr]]
 version = "2.7.4"
 criteria = "safe-to-run"
@@ -287,20 +278,12 @@ criteria = "safe-to-run"
 version = "0.29.0"
 criteria = "safe-to-run"
 
-[[exemptions.nu-ansi-term]]
-version = "0.46.0"
-criteria = "safe-to-run"
-
 [[exemptions.object]]
 version = "0.32.2"
 criteria = "safe-to-run"
 
 [[exemptions.ordered-stream]]
 version = "0.2.0"
-criteria = "safe-to-run"
-
-[[exemptions.overload]]
-version = "0.1.1"
 criteria = "safe-to-run"
 
 [[exemptions.parking]]
@@ -321,10 +304,6 @@ criteria = "safe-to-run"
 
 [[exemptions.piper]]
 version = "0.2.1"
-criteria = "safe-to-run"
-
-[[exemptions.pkg-config]]
-version = "0.3.29"
 criteria = "safe-to-run"
 
 [[exemptions.polling]]
@@ -375,16 +354,8 @@ criteria = "safe-to-run"
 version = "0.6.5"
 criteria = "safe-to-run"
 
-[[exemptions.sha1]]
-version = "0.10.6"
-criteria = "safe-to-run"
-
 [[exemptions.sharded-slab]]
 version = "0.1.7"
-criteria = "safe-to-run"
-
-[[exemptions.signal-hook-registry]]
-version = "1.4.1"
 criteria = "safe-to-run"
 
 [[exemptions.slab]]
@@ -473,10 +444,6 @@ criteria = "safe-to-run"
 
 [[exemptions.valuable]]
 version = "0.1.0"
-criteria = "safe-to-run"
-
-[[exemptions.vcpkg]]
-version = "0.2.15"
 criteria = "safe-to-run"
 
 [[exemptions.version-compare]]
