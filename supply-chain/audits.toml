@@ -1,0 +1,179 @@
+
+# cargo-vet audits file
+
+[audits]
+
+[[trusted.async-trait]]
+criteria = "safe-to-run"
+user-id = 3618 # David Tolnay (dtolnay)
+start = "2019-07-23"
+end = "2025-10-31"
+notes = "swsnr trusts dtolnay"
+
+[[trusted.bstr]]
+criteria = "safe-to-run"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-04-02"
+end = "2025-10-31"
+notes = "swsnr trusts BurntSushi"
+
+[[trusted.gio]]
+criteria = "safe-to-run"
+user-id = 3623 # Sebastian Dröge (sdroege)
+start = "2020-08-28"
+end = "2025-10-31"
+notes = "swsnr trusts sdroege"
+
+[[trusted.gio-sys]]
+criteria = "safe-to-run"
+user-id = 3623 # Sebastian Dröge (sdroege)
+start = "2020-09-16"
+end = "2025-10-31"
+notes = "swsnr trusts sdroege"
+
+[[trusted.glib]]
+criteria = "safe-to-run"
+user-id = 3623 # Sebastian Dröge (sdroege)
+start = "2020-02-14"
+end = "2025-10-31"
+notes = "swsnr trusts sdroege"
+
+[[trusted.glib-macros]]
+criteria = "safe-to-run"
+user-id = 3623 # Sebastian Dröge (sdroege)
+start = "2021-07-08"
+end = "2025-10-31"
+notes = "swsnr trusts sdroege"
+
+[[trusted.glib-sys]]
+criteria = "safe-to-run"
+user-id = 3623 # Sebastian Dröge (sdroege)
+start = "2020-09-16"
+end = "2025-10-31"
+notes = "swsnr trusts sdroege"
+
+[[trusted.globset]]
+criteria = "safe-to-run"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-04-15"
+end = "2025-10-31"
+notes = "swsnr trusts BurntSushi"
+
+[[trusted.gobject-sys]]
+criteria = "safe-to-run"
+user-id = 3623 # Sebastian Dröge (sdroege)
+start = "2022-01-15"
+end = "2025-10-31"
+notes = "swsnr trusts sdroege"
+
+[[trusted.ignore]]
+criteria = "safe-to-run"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-04-15"
+end = "2025-10-31"
+notes = "swsnr trusts BurntSushi"
+
+[[trusted.memchr]]
+criteria = "safe-to-run"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-07-07"
+end = "2025-10-31"
+notes = "swsnr trusts BurntSushi"
+
+[[trusted.regex-automata]]
+criteria = "safe-to-run"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-02-25"
+end = "2025-10-31"
+notes = "swsnr trusts BurntSushi"
+
+[[trusted.regex-syntax]]
+criteria = "safe-to-run"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-03-30"
+end = "2025-10-31"
+notes = "swsnr trusts BurntSushi"
+
+[[trusted.rustix]]
+criteria = "safe-to-run"
+user-id = 6825 # Dan Gohman (sunfishcode)
+start = "2021-10-29"
+end = "2025-10-31"
+notes = "swsnr trusts sunfishcode"
+
+[[trusted.ryu]]
+criteria = "safe-to-run"
+user-id = 3618 # David Tolnay (dtolnay)
+start = "2019-05-02"
+end = "2025-10-31"
+notes = "swsnr trusts dtolnay"
+
+[[trusted.serde_repr]]
+criteria = "safe-to-run"
+user-id = 3618 # David Tolnay (dtolnay)
+start = "2019-04-26"
+end = "2025-10-31"
+notes = "swsnr trusts dtolnay"
+
+[[trusted.serde_spanned]]
+criteria = "safe-to-run"
+user-id = 6743 # Ed Page (epage)
+start = "2023-01-20"
+end = "2025-10-31"
+notes = "swsnr trusts epage"
+
+[[trusted.thiserror]]
+criteria = "safe-to-run"
+user-id = 3618 # David Tolnay (dtolnay)
+start = "2019-10-09"
+end = "2025-10-31"
+notes = "swsnr trusts dtolnay"
+
+[[trusted.thiserror-impl]]
+criteria = "safe-to-run"
+user-id = 3618 # David Tolnay (dtolnay)
+start = "2019-10-09"
+end = "2025-10-31"
+notes = "swsnr trusts dtolnay"
+
+[[trusted.toml]]
+criteria = "safe-to-run"
+user-id = 6743 # Ed Page (epage)
+start = "2022-12-14"
+end = "2025-10-31"
+notes = "swsnr trusts epage"
+
+[[trusted.toml_datetime]]
+criteria = "safe-to-run"
+user-id = 6743 # Ed Page (epage)
+start = "2022-10-21"
+end = "2025-10-31"
+notes = "swsnr trusts epage"
+
+[[trusted.toml_edit]]
+criteria = "safe-to-run"
+user-id = 6743 # Ed Page (epage)
+start = "2021-09-13"
+end = "2025-10-31"
+notes = "swsnr trusts epage"
+
+[[trusted.walkdir]]
+criteria = "safe-to-run"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-06-09"
+end = "2025-10-31"
+notes = "swsnr trusts BurntSushi"
+
+[[trusted.windows-sys]]
+criteria = "safe-to-run"
+user-id = 64539 # Kenny Kerr (kennykerr)
+start = "2021-11-15"
+end = "2025-10-31"
+notes = "swsnr trusts kennykerr"
+
+[[trusted.winnow]]
+criteria = "safe-to-run"
+user-id = 6743 # Ed Page (epage)
+start = "2023-02-22"
+end = "2025-10-31"
+notes = "swsnr trusts epage"
