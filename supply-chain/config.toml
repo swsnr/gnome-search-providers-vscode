@@ -10,6 +10,9 @@ url = "https://raw.githubusercontent.com/bytecodealliance/wasmtime/main/supply-c
 [imports.google]
 url = "https://raw.githubusercontent.com/google/supply-chain/main/audits.toml"
 
+[imports.mozilla]
+url = "https://raw.githubusercontent.com/mozilla/supply-chain/main/audits.toml"
+
 [policy.gnome-search-providers-vscode]
 criteria = "safe-to-run"
 notes = "Just a local service with little to no external exposure, so safe-to-run is enough"
@@ -82,10 +85,6 @@ criteria = "safe-to-run"
 version = "0.17.0"
 criteria = "safe-to-run"
 
-[[exemptions.cfg_aliases]]
-version = "0.2.1"
-criteria = "safe-to-run"
-
 [[exemptions.concurrent-queue]]
 version = "2.4.0"
 criteria = "safe-to-run"
@@ -104,10 +103,6 @@ criteria = "safe-to-run"
 
 [[exemptions.crossbeam-utils]]
 version = "0.8.19"
-criteria = "safe-to-run"
-
-[[exemptions.crypto-common]]
-version = "0.1.6"
 criteria = "safe-to-run"
 
 [[exemptions.diff]]
@@ -152,10 +147,6 @@ criteria = "safe-to-run"
 
 [[exemptions.fallible-streaming-iterator]]
 version = "0.1.9"
-criteria = "safe-to-run"
-
-[[exemptions.fastrand]]
-version = "2.0.1"
 criteria = "safe-to-run"
 
 [[exemptions.futures-channel]]
@@ -272,10 +263,6 @@ criteria = "safe-to-run"
 
 [[exemptions.miniz_oxide]]
 version = "0.7.2"
-criteria = "safe-to-run"
-
-[[exemptions.nix]]
-version = "0.29.0"
 criteria = "safe-to-run"
 
 [[exemptions.object]]
