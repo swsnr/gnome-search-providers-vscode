@@ -10,6 +10,13 @@ start = "2019-07-23"
 end = "2025-10-31"
 notes = "swsnr trusts dtolnay"
 
+[[trusted.autocfg]]
+criteria = "safe-to-run"
+user-id = 539 # Josh Stone (cuviper)
+start = "2019-05-22"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
+
 [[trusted.bstr]]
 criteria = "safe-to-run"
 user-id = 189 # Andrew Gallant (BurntSushi)
@@ -66,12 +73,26 @@ start = "2022-01-15"
 end = "2025-10-31"
 notes = "swsnr trusts sdroege"
 
+[[trusted.hashbrown]]
+criteria = "safe-to-run"
+user-id = 2915 # Amanieu d'Antras (Amanieu)
+start = "2019-04-02"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
+
 [[trusted.ignore]]
 criteria = "safe-to-run"
 user-id = 189 # Andrew Gallant (BurntSushi)
 start = "2019-04-15"
 end = "2025-10-31"
 notes = "swsnr trusts BurntSushi"
+
+[[trusted.indexmap]]
+criteria = "safe-to-run"
+user-id = 539 # Josh Stone (cuviper)
+start = "2020-01-15"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.memchr]]
 criteria = "safe-to-run"
@@ -96,7 +117,7 @@ notes = "swsnr trusts BurntSushi"
 
 [[trusted.rustix]]
 criteria = "safe-to-run"
-user-id = 6825 # Dan Gohman (sunfishcode)
+user-id = 6825
 start = "2021-10-29"
 end = "2025-10-31"
 notes = "swsnr trusts sunfishcode"
@@ -121,6 +142,34 @@ user-id = 6743 # Ed Page (epage)
 start = "2023-01-20"
 end = "2025-10-31"
 notes = "swsnr trusts epage"
+
+[[trusted.slab]]
+criteria = "safe-to-run"
+user-id = 6741 # Alice Ryhl (Darksonn)
+start = "2021-10-13"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
+
+[[trusted.smallvec]]
+criteria = "safe-to-run"
+user-id = 2017 # Matt Brubeck (mbrubeck)
+start = "2019-10-28"
+end = "2025-11-03"
+notes = "Trusted by mozilla"
+
+[[trusted.syn]]
+criteria = "safe-to-run"
+user-id = 3618 # David Tolnay (dtolnay)
+start = "2019-03-01"
+end = "2025-11-03"
+notes = "swsnr trusts dtolnay"
+
+[[trusted.target-lexicon]]
+criteria = "safe-to-run"
+user-id = 696 # Nick Fitzgerald (fitzgen)
+start = "2024-07-30"
+end = "2025-11-03"
+notes = "Trusted by bytecode alliance"
 
 [[trusted.thiserror]]
 criteria = "safe-to-run"
@@ -170,6 +219,69 @@ user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2021-11-15"
 end = "2025-10-31"
 notes = "swsnr trusts kennykerr"
+
+[[trusted.windows-targets]]
+criteria = "safe-to-run"
+user-id = 64539 # Kenny Kerr (kennykerr)
+start = "2022-09-09"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
+
+[[trusted.windows_aarch64_gnullvm]]
+criteria = "safe-to-run"
+user-id = 64539 # Kenny Kerr (kennykerr)
+start = "2022-09-01"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
+
+[[trusted.windows_aarch64_msvc]]
+criteria = "safe-to-run"
+user-id = 64539 # Kenny Kerr (kennykerr)
+start = "2021-11-05"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
+
+[[trusted.windows_i686_gnu]]
+criteria = "safe-to-run"
+user-id = 64539 # Kenny Kerr (kennykerr)
+start = "2021-10-28"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
+
+[[trusted.windows_i686_gnullvm]]
+criteria = "safe-to-run"
+user-id = 64539 # Kenny Kerr (kennykerr)
+start = "2024-04-02"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
+
+[[trusted.windows_i686_msvc]]
+criteria = "safe-to-run"
+user-id = 64539 # Kenny Kerr (kennykerr)
+start = "2021-10-27"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
+
+[[trusted.windows_x86_64_gnu]]
+criteria = "safe-to-run"
+user-id = 64539 # Kenny Kerr (kennykerr)
+start = "2021-10-28"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
+
+[[trusted.windows_x86_64_gnullvm]]
+criteria = "safe-to-run"
+user-id = 64539 # Kenny Kerr (kennykerr)
+start = "2022-09-01"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
+
+[[trusted.windows_x86_64_msvc]]
+criteria = "safe-to-run"
+user-id = 64539 # Kenny Kerr (kennykerr)
+start = "2021-10-27"
+end = "2025-11-03"
+notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.winnow]]
 criteria = "safe-to-run"
