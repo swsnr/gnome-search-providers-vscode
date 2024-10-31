@@ -68,20 +68,12 @@ criteria = "safe-to-run"
 version = "4.7.1"
 criteria = "safe-to-run"
 
-[[exemptions.async-trait]]
-version = "0.1.82"
-criteria = "safe-to-run"
-
 [[exemptions.atomic-waker]]
 version = "1.1.2"
 criteria = "safe-to-run"
 
 [[exemptions.blocking]]
 version = "1.6.1"
-criteria = "safe-to-run"
-
-[[exemptions.bstr]]
-version = "1.9.0"
 criteria = "safe-to-run"
 
 [[exemptions.cfg-expr]]
@@ -192,44 +184,12 @@ criteria = "safe-to-run"
 version = "0.28.1"
 criteria = "safe-to-run"
 
-[[exemptions.gio]]
-version = "0.20.1"
-criteria = "safe-to-run"
-
-[[exemptions.gio-sys]]
-version = "0.20.1"
-criteria = "safe-to-run"
-
-[[exemptions.glib]]
-version = "0.20.3"
-criteria = "safe-to-run"
-
-[[exemptions.glib-macros]]
-version = "0.20.3"
-criteria = "safe-to-run"
-
-[[exemptions.glib-sys]]
-version = "0.20.2"
-criteria = "safe-to-run"
-
-[[exemptions.globset]]
-version = "0.4.14"
-criteria = "safe-to-run"
-
 [[exemptions.globwalk]]
 version = "0.9.1"
 criteria = "safe-to-run"
 
-[[exemptions.gobject-sys]]
-version = "0.20.1"
-criteria = "safe-to-run"
-
 [[exemptions.hashlink]]
 version = "0.9.1"
-criteria = "safe-to-run"
-
-[[exemptions.ignore]]
-version = "0.4.22"
 criteria = "safe-to-run"
 
 [[exemptions.indexmap]]
@@ -254,10 +214,6 @@ criteria = "safe-to-run"
 
 [[exemptions.logcontrol-zbus]]
 version = "2.0.0"
-criteria = "safe-to-run"
-
-[[exemptions.memchr]]
-version = "2.7.4"
 criteria = "safe-to-run"
 
 [[exemptions.miniz_oxide]]
@@ -308,36 +264,12 @@ criteria = "safe-to-run"
 version = "0.4.1"
 criteria = "safe-to-run"
 
-[[exemptions.regex-automata]]
-version = "0.1.10"
-criteria = "safe-to-run"
-
-[[exemptions.regex-syntax]]
-version = "0.6.29"
-criteria = "safe-to-run"
-
 [[exemptions.rusqlite]]
 version = "0.32.1"
 criteria = "safe-to-run"
 
-[[exemptions.rustix]]
-version = "0.38.31"
-criteria = "safe-to-run"
-
-[[exemptions.ryu]]
-version = "1.0.16"
-criteria = "safe-to-run"
-
 [[exemptions.scopeguard]]
 version = "1.2.0"
-criteria = "safe-to-run"
-
-[[exemptions.serde_repr]]
-version = "0.1.19"
-criteria = "safe-to-run"
-
-[[exemptions.serde_spanned]]
-version = "0.6.5"
 criteria = "safe-to-run"
 
 [[exemptions.sharded-slab]]
@@ -364,32 +296,8 @@ criteria = "safe-to-run"
 version = "3.10.0"
 criteria = "safe-to-run"
 
-[[exemptions.thiserror]]
-version = "1.0.57"
-criteria = "safe-to-run"
-
-[[exemptions.thiserror-impl]]
-version = "1.0.57"
-criteria = "safe-to-run"
-
 [[exemptions.thread_local]]
 version = "1.1.7"
-criteria = "safe-to-run"
-
-[[exemptions.toml]]
-version = "0.8.10"
-criteria = "safe-to-run"
-
-[[exemptions.toml_datetime]]
-version = "0.6.5"
-criteria = "safe-to-run"
-
-[[exemptions.toml_edit]]
-version = "0.21.1"
-criteria = "safe-to-run"
-
-[[exemptions.toml_edit]]
-version = "0.22.5"
 criteria = "safe-to-run"
 
 [[exemptions.tracing]]
@@ -436,10 +344,6 @@ criteria = "safe-to-run"
 version = "0.2.0"
 criteria = "safe-to-run"
 
-[[exemptions.walkdir]]
-version = "2.4.0"
-criteria = "safe-to-run"
-
 [[exemptions.wasi]]
 version = "0.11.0+wasi-snapshot-preview1"
 criteria = "safe-to-run"
@@ -450,18 +354,6 @@ criteria = "safe-to-run"
 
 [[exemptions.winapi-x86_64-pc-windows-gnu]]
 version = "0.4.0"
-criteria = "safe-to-run"
-
-[[exemptions.windows-sys]]
-version = "0.48.0"
-criteria = "safe-to-run"
-
-[[exemptions.windows-sys]]
-version = "0.52.0"
-criteria = "safe-to-run"
-
-[[exemptions.windows-sys]]
-version = "0.59.0"
 criteria = "safe-to-run"
 
 [[exemptions.windows-targets]]
@@ -530,14 +422,6 @@ criteria = "safe-to-run"
 
 [[exemptions.windows_x86_64_msvc]]
 version = "0.52.6"
-criteria = "safe-to-run"
-
-[[exemptions.winnow]]
-version = "0.5.40"
-criteria = "safe-to-run"
-
-[[exemptions.winnow]]
-version = "0.6.0"
 criteria = "safe-to-run"
 
 [[exemptions.xdg-home]]
