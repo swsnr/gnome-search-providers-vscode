@@ -7,8 +7,11 @@
 use std::fmt::Debug;
 use std::path::Path;
 use std::rc::Rc;
+use std::time::Duration;
 
-use gio::{prelude::*, AppLaunchContext, DBusInterfaceInfo, DesktopAppInfo, IOErrorEnum};
+use gio::{
+    prelude::*, AppLaunchContext, Application, DBusInterfaceInfo, DesktopAppInfo, IOErrorEnum,
+};
 use gio::{ApplicationFlags, DBusNodeInfo};
 use glib::{UriFlags, Variant, VariantDict, VariantTy};
 use rusqlite::{OpenFlags, OptionalExtension};
@@ -254,13 +257,22 @@ pub fn name_from_uri(uri_or_path: &str) -> Option<&str> {
 }
 
 struct SearchProvider {
-    app: DesktopAppInfo,
+    search_provider_app: Application,
+    code_app: DesktopAppInfo,
     storage: StorageClient,
 }
 
 impl SearchProvider {
-    fn new(app: DesktopAppInfo, storage: StorageClient) -> Self {
-        Self { app, storage }
+    fn new(
+        search_provider_app: Application,
+        code_app: DesktopAppInfo,
+        storage: StorageClient,
+    ) -> Self {
+        Self {
+            search_provider_app,
+            code_app,
+            storage,
+        }
     }
 
     /// Handle the given search provider method `call`.
@@ -271,6 +283,8 @@ impl SearchProvider {
         &self,
         call: SearchProvider2Method,
     ) -> Result<Option<Variant>, glib::Error> {
+        // Hold on to the application while we're processing a DBus call.
+        let _guard = self.search_provider_app.hold();
         // TODO: Move launched app to separate scope!
         match call {
             SearchProvider2Method::GetInitialResultSet(GetInitialResultSet(terms)) => {
@@ -333,7 +347,9 @@ impl SearchProvider {
                                 metas.insert("description", uri.as_str());
                             }
                         }
-                        if let Some(app_icon) = self.app.icon().and_then(|icon| icon.serialize()) {
+                        if let Some(app_icon) =
+                            self.code_app.icon().and_then(|icon| icon.serialize())
+                        {
                             metas.insert("icon", app_icon)
                         }
                         metas
@@ -344,17 +360,23 @@ impl SearchProvider {
             SearchProvider2Method::ActivateResult(ActivateResult(identifier, _, _)) => {
                 glib::info!(
                     "Launching application {} with URI {identifier}",
-                    self.app.id().unwrap()
+                    self.code_app.id().unwrap()
                 );
                 glib::spawn_future_local(
-                    self.app
+                    self.code_app
                         .launch_uris_future(&[identifier.as_str()], AppLaunchContext::NONE),
                 );
                 Ok(None)
             }
             SearchProvider2Method::LaunchSearch(_) => {
-                glib::info!("Launching application {} directly", self.app.id().unwrap());
-                glib::spawn_future_local(self.app.launch_uris_future(&[], AppLaunchContext::NONE));
+                glib::info!(
+                    "Launching application {} directly",
+                    self.code_app.id().unwrap()
+                );
+                glib::spawn_future_local(
+                    self.code_app
+                        .launch_uris_future(&[], AppLaunchContext::NONE),
+                );
                 Ok(None)
             }
         }
@@ -395,6 +417,9 @@ impl SearchProvider {
 }
 
 fn startup(app: &gio::Application) {
+    // Hold on to the application during startup, to avoid early exit.
+    let _guard = app.hold();
+
     let providers = [
         // The standard Arch Linux code package from community
         ("code-oss.desktop", "Code - OSS"),
@@ -430,7 +455,7 @@ fn startup(app: &gio::Application) {
             );
             match StorageClient::open(&db_path) {
                 Ok(storage) => {
-                    let provider = SearchProvider::new(vscode_app, storage);
+                    let provider = SearchProvider::new(app.clone(), vscode_app, storage);
                     if let Err(error) = provider.register(&connection, &object_path, &interface) {
                         glib::error!(
                             "Skipping {desktop_id}, failed to register on {}, {error}",
@@ -460,9 +485,11 @@ pub fn main() -> glib::ExitCode {
     let app = gio::Application::builder()
         .application_id("de.swsnr.VSCodeSearchProvider")
         .flags(ApplicationFlags::IS_SERVICE)
+        // Exit five minutes after release the app, i.e. in our case after finishing
+        // the last DBus call.
+        .inactivity_timeout(Duration::from_secs(300).as_millis().try_into().unwrap())
         .build();
 
-    let _guard = app.hold();
     app.connect_startup(startup);
     app.run()
 }
