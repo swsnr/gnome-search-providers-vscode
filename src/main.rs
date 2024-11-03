@@ -128,33 +128,19 @@ impl StorageClient {
 }
 
 #[derive(Debug, Variant)]
-pub struct GetInitialResultSet {
-    pub terms: Vec<String>,
-}
+pub struct GetInitialResultSet(Vec<String>);
 
 #[derive(Debug, Variant)]
-pub struct GetSubsearchResultSet {
-    pub previous_results: Vec<String>,
-    pub terms: Vec<String>,
-}
+pub struct GetSubsearchResultSet(Vec<String>, Vec<String>);
 
 #[derive(Debug, Variant)]
-pub struct GetResultMetas {
-    pub identifiers: Vec<String>,
-}
+pub struct GetResultMetas(Vec<String>);
 
 #[derive(Debug, Variant)]
-pub struct ActivateResult {
-    pub identifier: String,
-    pub terms: Vec<String>,
-    pub timestamp: u32,
-}
+pub struct ActivateResult(String, Vec<String>, u32);
 
 #[derive(Debug, Variant)]
-pub struct LaunchSearch {
-    pub terms: Vec<String>,
-    pub timestamp: u32,
-}
+pub struct LaunchSearch(Vec<String>, u32);
 
 /// Method calls a search provider supports.
 #[derive(Debug)]
@@ -287,7 +273,7 @@ impl SearchProvider {
     ) -> Result<Option<Variant>, glib::Error> {
         // TODO: Move launched app to separate scope!
         match call {
-            SearchProvider2Method::GetInitialResultSet(GetInitialResultSet { terms }) => {
+            SearchProvider2Method::GetInitialResultSet(GetInitialResultSet(terms)) => {
                 glib::debug!("Searching for terms {terms:?}");
                 let uris = self
                     .storage
@@ -307,10 +293,10 @@ impl SearchProvider {
 
                 Ok(Some(find_matching_uris(uris, terms.as_slice()).into()))
             }
-            SearchProvider2Method::GetSubsearchResultSet(GetSubsearchResultSet {
+            SearchProvider2Method::GetSubsearchResultSet(GetSubsearchResultSet(
                 previous_results,
                 terms,
-            }) => {
+            )) => {
                 glib::debug!(
                     "Searching for terms {terms:?} in {} previosu results",
                     previous_results.len()
@@ -319,7 +305,7 @@ impl SearchProvider {
                     find_matching_uris(previous_results, terms.as_slice()).into(),
                 ))
             }
-            SearchProvider2Method::GetResultMetas(GetResultMetas { identifiers }) => {
+            SearchProvider2Method::GetResultMetas(GetResultMetas(identifiers)) => {
                 glib::debug!("Get metadata for {identifiers:?}");
                 let metas: Vec<VariantDict> = identifiers
                     .into_iter()
@@ -355,7 +341,7 @@ impl SearchProvider {
                     .collect::<Vec<_>>();
                 Ok(Some(metas.into()))
             }
-            SearchProvider2Method::ActivateResult(ActivateResult { identifier, .. }) => {
+            SearchProvider2Method::ActivateResult(ActivateResult(identifier, _, _)) => {
                 glib::info!(
                     "Launching application {} with URI {identifier}",
                     self.app.id().unwrap()
