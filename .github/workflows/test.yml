@@ -9,12 +9,6 @@ on:
   pull_request:
 
 jobs:
-  cargo-deny:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: EmbarkStudios/cargo-deny-action@v2
-
   test:
     runs-on: ubuntu-latest
     steps:
@@ -22,10 +16,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
-      - run: cargo fmt -- --check
       - run: cargo build --all-targets --locked
       - run: cargo clippy --all-targets --locked
       - run: cargo test --locked
+      - run: cargo fmt -- --check
+      - uses: EmbarkStudios/cargo-deny-action@v2
 
   # See https://mozilla.github.io/cargo-vet/configuring-ci.html
   cargo-vet:
