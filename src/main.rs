@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::fmt::Debug;
 use std::path::Path;
 use std::rc::Rc;
 
@@ -235,22 +236,22 @@ fn score_uri<S: AsRef<str>>(uri: &str, terms: &[S]) -> f64 {
 /// Find all URIs from `uris` which match all of `terms`.
 ///
 /// Score every URI, and filter out all URIs with a score of 0 or less.
-fn find_matching_uris<I: IntoIterator<Item = String>, S: AsRef<str>>(
-    uris: I,
-    terms: &[S],
-) -> Vec<String> {
+fn find_matching_uris<I, S>(uris: I, terms: &[S]) -> Vec<String>
+where
+    S: AsRef<str> + Debug,
+    I: IntoIterator<Item = String>,
+{
     let mut scored = uris
         .into_iter()
         .filter_map(|uri| {
             let decoded_uri = glib::Uri::parse(&uri, UriFlags::NONE)
                 .ok()
                 .map(|s| s.to_str());
-            let score = score_uri(
-                decoded_uri
-                    .as_ref()
-                    .map_or_else(|| uri.as_str(), |s| s.as_str()),
-                terms,
-            );
+            let scored_uri = decoded_uri
+                .as_ref()
+                .map_or_else(|| uri.as_str(), |s| s.as_str());
+            let score = score_uri(scored_uri, terms);
+            glib::trace!("URI {scored_uri} scores {score} against {terms:?}");
             if score <= 0.0 {
                 None
             } else {
@@ -287,6 +288,7 @@ impl SearchProvider {
         // TODO: Move launched app to separate scope!
         match call {
             SearchProvider2Method::GetInitialResultSet(GetInitialResultSet { terms }) => {
+                glib::debug!("Searching for terms {terms:?}");
                 let uris = self
                     .storage
                     .query_recently_opened_path_lists()
@@ -308,10 +310,17 @@ impl SearchProvider {
             SearchProvider2Method::GetSubsearchResultSet(GetSubsearchResultSet {
                 previous_results,
                 terms,
-            }) => Ok(Some(
-                find_matching_uris(previous_results, terms.as_slice()).into(),
-            )),
+            }) => {
+                glib::debug!(
+                    "Searching for terms {terms:?} in {} previosu results",
+                    previous_results.len()
+                );
+                Ok(Some(
+                    find_matching_uris(previous_results, terms.as_slice()).into(),
+                ))
+            }
             SearchProvider2Method::GetResultMetas(GetResultMetas { identifiers }) => {
+                glib::debug!("Get metadata for {identifiers:?}");
                 let metas: Vec<VariantDict> = identifiers
                     .into_iter()
                     .map(|uri| {
@@ -347,13 +356,18 @@ impl SearchProvider {
                 Ok(Some(metas.into()))
             }
             SearchProvider2Method::ActivateResult(ActivateResult { identifier, .. }) => {
+                glib::info!(
+                    "Launching application {} with URI {identifier}",
+                    self.app.id().unwrap()
+                );
                 glib::spawn_future_local(
                     self.app
                         .launch_uris_future(&[identifier.as_str()], AppLaunchContext::NONE),
                 );
                 Ok(None)
             }
-            SearchProvider2Method::LaunchSearch(_launch_search) => {
+            SearchProvider2Method::LaunchSearch(_) => {
+                glib::info!("Launching application {} directly", self.app.id().unwrap());
                 glib::spawn_future_local(self.app.launch_uris_future(&[], AppLaunchContext::NONE));
                 Ok(None)
             }
