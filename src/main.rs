@@ -398,9 +398,6 @@ fn startup(app: &gio::Application) {
     let providers = [
         // The standard Arch Linux code package from community
         ("code-oss.desktop", "Code - OSS"),
-        // TODO: Remove this provider
-        // The binary AUR package for visual studio code: https://aur.archlinux.org/packages/visual-studio-code-bin/
-        ("visual-studio-code.desktop", "Code"),
         // The standard codium package on Linux from here: https://github.com/VSCodium/vscodium.
         // Should work for most Linux distributions packaged from here.
         ("codium.desktop", "VSCodium"),
