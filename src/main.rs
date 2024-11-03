@@ -442,7 +442,7 @@ fn startup(app: &gio::Application) {
             let object_path = format!(
                 "{}/{}",
                 app.dbus_object_path().unwrap(),
-                vscode_app.id().unwrap().replace(".desktop", "")
+                vscode_app.id().unwrap().trim_end_matches(".desktop")
             );
             let db_path = user_config_dir
                 .join(config_dir_name)
