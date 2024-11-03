@@ -451,7 +451,7 @@ fn startup(app: &gio::Application) {
 
 pub fn main() -> glib::ExitCode {
     static LOGGER: glib::GlibLogger = glib::GlibLogger::new(
-        glib::GlibLoggerFormat::Plain,
+        glib::GlibLoggerFormat::Structured,
         glib::GlibLoggerDomain::CrateTarget,
     );
     log::set_logger(&LOGGER).unwrap();
