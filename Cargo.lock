@@ -247,7 +247,7 @@ dependencies = [
 
 [[package]]
 name = "gnome-search-providers-vscode"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "async-channel",
  "gio",
