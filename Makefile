@@ -21,5 +21,5 @@ build:
 install:
 	install -Dm644 -t $(DESTDIR)$(SEARCH_PROVIDERS_DIR) $(SEARCH_PROVIDERS)
 	install -Dm644 -t $(DESTDIR)$(USERUNITDIR) systemd/gnome-search-providers-vscode.service
-	install -Dm644 -t $(DESTDIR)$(DBUS_SERVICES_DIR) dbus-1/de.swsnr.searchprovider.VSCode.service
+	install -Dm644 -t $(DESTDIR)$(DBUS_SERVICES_DIR) dbus-1/de.swsnr.VSCodeSearchProvider.service
 	install -Dm755 -t $(DESTDIR)$(BINDIR) target/release/gnome-search-providers-vscode
