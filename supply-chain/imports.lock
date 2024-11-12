@@ -263,7 +263,23 @@ start = "2020-01-01"
 end = "2024-05-23"
 notes = "Maintained by Embark. No unsafe usage or ambient capabilities"
 
-[audits.embark-studios.audits]
+[[audits.embark-studios.audits.version-compare]]
+who = "Johan Andersson <opensource@embark-studios.com>"
+criteria = "safe-to-deploy"
+version = "0.1.1"
+notes = "No unsafe usage or ambient capabilities"
+
+[[audits.gnome-releng.audits.version-compare]]
+who = "Sophie Herold <sophie@hemio.de>"
+criteria = "safe-to-deploy"
+delta = "0.1.1 -> 0.2.0"
+aggregated-from = "https://gitlab.gnome.org/GNOME/loupe/-/raw/main/supply-chain/audits.toml"
+
+[[audits.gnome-releng.audits.version_check]]
+who = "Sophie Herold <sophie@hemio.de>"
+criteria = "safe-to-deploy"
+delta = "0.9.4 -> 0.9.5"
+aggregated-from = "https://gitlab.gnome.org/GNOME/loupe/-/raw/main/supply-chain/audits.toml"
 
 [[audits.google.audits.ahash]]
 who = "Nicholas Bishop <nicholasbishop@google.com>"
@@ -842,6 +858,12 @@ criteria = "safe-to-deploy"
 delta = "1.0.12 -> 1.0.13"
 notes = "Lots of table updates, and tables are assumed correct with unsafe `.get_unchecked()`, so ub-risk-2 is appropriate"
 aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
+[[audits.google.audits.version_check]]
+who = "George Burgess IV <gbiv@google.com>"
+criteria = "safe-to-deploy"
+version = "0.9.4"
+aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
 
 [[audits.mozilla.audits.crossbeam-utils]]
 who = "Jan-Erik Rediger <jrediger@mozilla.com>"
