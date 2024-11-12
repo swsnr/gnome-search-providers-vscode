@@ -1,7 +1,11 @@
 
 # cargo-vet audits file
 
-[audits]
+[[audits.pkg-config]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-deploy"
+delta = "0.3.30 -> 0.3.31"
+notes = "Just a small bug fix around cargo directives for build.rs, no critical changes."
 
 [[trusted.async-trait]]
 criteria = "safe-to-run"

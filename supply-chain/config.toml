@@ -55,10 +55,6 @@ criteria = "safe-to-run"
 version = "1.20.1"
 criteria = "safe-to-run"
 
-[[exemptions.pkg-config]]
-version = "0.3.31"
-criteria = "safe-to-run"
-
 [[exemptions.proc-macro-crate]]
 version = "3.2.0"
 criteria = "safe-to-run"
