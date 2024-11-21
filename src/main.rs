@@ -432,7 +432,6 @@ impl SearchProvider {
     ) -> Result<Option<Variant>, glib::Error> {
         // Hold on to the application while we're processing a DBus call.
         let _guard = self.search_provider_app.hold();
-        // TODO: Move launched app to separate scope!
         match call {
             SearchProvider2Method::GetInitialResultSet(GetInitialResultSet(terms)) => {
                 glib::debug!("Searching for terms {terms:?}");
