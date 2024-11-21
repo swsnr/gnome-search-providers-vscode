@@ -15,7 +15,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-gio = { version = "0.20.5", features = ["v2_60"] }
+gio = { version = "0.20.5", features = ["v2_80"] }
 glib = { version = "0.20.5", features = ["log", "log_macros", "v2_66"] }
 log = "0.4.22"
 rusqlite = { version = "0.32.1", default-features = false, features = ["serde_json"] }

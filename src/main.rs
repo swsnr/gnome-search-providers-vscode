@@ -605,6 +605,7 @@ pub fn main() -> glib::ExitCode {
         .inactivity_timeout(Duration::from_secs(60).as_millis().try_into().unwrap())
         .build();
 
+    app.set_version(env!("CARGO_PKG_VERSION"));
     app.connect_startup(startup);
     app.run()
 }
