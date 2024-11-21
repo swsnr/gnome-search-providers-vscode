@@ -51,14 +51,6 @@ pub struct StorageOpenedPathsList {
     entries: Option<Vec<StorageOpenedPathsListEntry>>,
 }
 
-struct QueryOpenedPathsLists {
-    tx: async_channel::Sender<Result<Option<StorageOpenedPathsList>, glib::Error>>,
-}
-
-struct StorageClient {
-    tx: async_channel::Sender<QueryOpenedPathsLists>,
-}
-
 fn query_recently_opened_path_lists(
     connection: &rusqlite::Connection,
 ) -> Result<Option<StorageOpenedPathsList>, glib::Error> {
@@ -90,45 +82,6 @@ fn query_recently_opened_path_lists(
             })
         })
         .transpose()
-}
-
-impl StorageClient {
-    pub fn open<P: AsRef<Path>>(db_path: P) -> Result<Self, glib::Error> {
-        let flags = OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX;
-        let connection =
-            rusqlite::Connection::open_with_flags(db_path.as_ref(), flags).map_err(|error| {
-                glib::Error::new(
-                    IOErrorEnum::Failed,
-                    &format!(
-                        "Failed to open connection to {}: {error}",
-                        db_path.as_ref().display()
-                    ),
-                )
-            })?;
-        let (tx, rx) = async_channel::bounded::<QueryOpenedPathsLists>(1);
-        std::thread::spawn(move || {
-            let context = glib::MainContext::new();
-            let _guard = context.acquire().unwrap();
-            context.block_on(async move {
-                while let Ok(message) = rx.recv().await {
-                    message
-                        .tx
-                        .send(query_recently_opened_path_lists(&connection))
-                        .await
-                        .unwrap();
-                }
-            });
-        });
-        Ok(Self { tx })
-    }
-
-    async fn query_recently_opened_path_lists(
-        &self,
-    ) -> Result<Option<StorageOpenedPathsList>, glib::Error> {
-        let (tx, rx) = async_channel::bounded(1);
-        self.tx.send(QueryOpenedPathsLists { tx }).await.unwrap();
-        rx.recv().await.unwrap()
-    }
 }
 
 #[derive(Debug, Variant)]
@@ -226,20 +179,21 @@ fn score_uri<S: AsRef<str>>(uri: &str, terms: &[S]) -> f64 {
 /// Find all URIs from `uris` which match all of `terms`.
 ///
 /// Score every URI, and filter out all URIs with a score of 0 or less.
-fn find_matching_uris<I, S>(uris: I, terms: &[S]) -> Vec<String>
+fn find_matching_uris<I, U, S>(uris: I, terms: &[S]) -> Vec<U>
 where
     S: AsRef<str> + Debug,
-    I: IntoIterator<Item = String>,
+    U: AsRef<str>,
+    I: IntoIterator<Item = U>,
 {
     let mut scored = uris
         .into_iter()
         .filter_map(|uri| {
-            let decoded_uri = glib::Uri::parse(&uri, UriFlags::NONE)
+            let decoded_uri = glib::Uri::parse(uri.as_ref(), UriFlags::NONE)
                 .ok()
                 .map(|s| s.to_str());
             let scored_uri = decoded_uri
                 .as_ref()
-                .map_or_else(|| uri.as_str(), |s| s.as_str());
+                .map_or_else(|| uri.as_ref(), |s| s.as_str());
             let score = score_uri(scored_uri, terms);
             glib::trace!("URI {scored_uri} scores {score} against {terms:?}");
             if score <= 0.0 {
@@ -351,7 +305,7 @@ async fn move_to_scope(pid: i32, scope: String) -> Result<String, glib::Error> {
 struct SearchProvider {
     search_provider_app: Application,
     code_app: DesktopAppInfo,
-    storage: StorageClient,
+    workspaces: Vec<String>,
     launch_context: AppLaunchContext,
 }
 
@@ -359,7 +313,7 @@ impl SearchProvider {
     fn new(
         search_provider_app: Application,
         code_app: DesktopAppInfo,
-        storage: StorageClient,
+        workspaces: Vec<String>,
     ) -> Self {
         let launch_context = AppLaunchContext::new();
         launch_context.connect_launched(glib::clone!(
@@ -417,7 +371,7 @@ impl SearchProvider {
         Self {
             search_provider_app,
             code_app,
-            storage,
+            workspaces,
             launch_context,
         }
     }
@@ -435,23 +389,9 @@ impl SearchProvider {
         match call {
             SearchProvider2Method::GetInitialResultSet(GetInitialResultSet(terms)) => {
                 glib::debug!("Searching for terms {terms:?}");
-                let uris = self
-                    .storage
-                    .query_recently_opened_path_lists()
-                    .await?
-                    .unwrap_or_default()
-                    .entries
-                    .unwrap_or_default()
-                    .into_iter()
-                    .filter_map(|entry| match entry {
-                        StorageOpenedPathsListEntry::Workspace { workspace } => {
-                            Some(workspace.config_path)
-                        }
-                        StorageOpenedPathsListEntry::Folder { uri } => Some(uri),
-                        StorageOpenedPathsListEntry::File { .. } => None,
-                    });
-
-                Ok(Some(find_matching_uris(uris, terms.as_slice()).into()))
+                Ok(Some(
+                    find_matching_uris(&self.workspaces, terms.as_slice()).into(),
+                ))
             }
             SearchProvider2Method::GetSubsearchResultSet(GetSubsearchResultSet(
                 previous_results,
@@ -562,6 +502,34 @@ impl SearchProvider {
     }
 }
 
+/// Load workspaces from the given connection, and return all workspace URIs.
+fn load_workspaces(connection: &rusqlite::Connection) -> Result<Vec<String>, glib::Error> {
+    Ok(query_recently_opened_path_lists(connection)?
+        .unwrap_or_default()
+        .entries
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|entry| match entry {
+            StorageOpenedPathsListEntry::Workspace { workspace } => Some(workspace.config_path),
+            StorageOpenedPathsListEntry::Folder { uri } => Some(uri),
+            StorageOpenedPathsListEntry::File { .. } => None,
+        })
+        .collect())
+}
+
+fn open_connection<P: AsRef<Path>>(db_path: P) -> Result<rusqlite::Connection, glib::Error> {
+    let flags = OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX;
+    rusqlite::Connection::open_with_flags(db_path.as_ref(), flags).map_err(|error| {
+        glib::Error::new(
+            IOErrorEnum::Failed,
+            &format!(
+                "Failed to open connection to {}: {error}",
+                db_path.as_ref().display()
+            ),
+        )
+    })
+}
+
 fn startup(app: &gio::Application) {
     // Hold on to the application during startup, to avoid early exit.
     let _guard = app.hold();
@@ -596,12 +564,13 @@ fn startup(app: &gio::Application) {
                 .join("globalStorage")
                 .join("state.vscdb");
             glib::info!(
-                "Found app {desktop_id} with db at {}, exposing at {object_path}",
+                "Found app {desktop_id}, loading workspaces from db at {}",
                 db_path.display()
             );
-            match StorageClient::open(&db_path) {
-                Ok(storage) => {
-                    let provider = SearchProvider::new(app.clone(), vscode_app, storage);
+            match open_connection(&db_path).and_then(|c| load_workspaces(&c)) {
+                Ok(workspaces) => {
+                    glib::info!("Found {} workspaces for {desktop_id}, exposing search provider at {object_path}", workspaces.len());
+                    let provider = SearchProvider::new(app.clone(), vscode_app, workspaces);
                     if let Err(error) = provider.register(&connection, &object_path, &interface) {
                         glib::error!(
                             "Skipping {desktop_id}, failed to register on {}, {error}",
@@ -611,7 +580,7 @@ fn startup(app: &gio::Application) {
                 }
                 Err(error) => {
                     glib::error!(
-                        "Skipping {desktop_id}, failed to open DB connection for {}, {error}",
+                        "Skipping {desktop_id}, failed to load workspaces from {}: {error}",
                         db_path.display()
                     );
                 }
@@ -631,9 +600,9 @@ pub fn main() -> glib::ExitCode {
     let app = gio::Application::builder()
         .application_id("de.swsnr.VSCodeSearchProvider")
         .flags(ApplicationFlags::IS_SERVICE)
-        // Exit five minutes after release the app, i.e. in our case after finishing
+        // Exit one minute after release the app, i.e. in our case after finishing
         // the last DBus call.
-        .inactivity_timeout(Duration::from_secs(300).as_millis().try_into().unwrap())
+        .inactivity_timeout(Duration::from_secs(60).as_millis().try_into().unwrap())
         .build();
 
     app.connect_startup(startup);
