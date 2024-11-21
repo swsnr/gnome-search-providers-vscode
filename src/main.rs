@@ -398,7 +398,7 @@ impl SearchProvider {
                 terms,
             )) => {
                 glib::debug!(
-                    "Searching for terms {terms:?} in {} previosu results",
+                    "Searching for terms {terms:?} in {} previous results",
                     previous_results.len()
                 );
                 Ok(Some(
