@@ -313,7 +313,7 @@ async fn move_to_scope(pid: i32, scope: String) -> Result<String, glib::Error> {
     // the properties array has type a(sv) as per the manager1 interface.
     let properties = vec![
         // I haven't found any documentation for the type of the PIDs property directly, but elsewhere
-        // in its DBus interface system always used u32 for PIDs.
+        // in its DBus interface systemd always used u32 for PIDs.
         (
             "PIDs".to_string(),
             glib::Variant::from_variant(&vec![u32::try_from(pid).unwrap()].to_variant()),
