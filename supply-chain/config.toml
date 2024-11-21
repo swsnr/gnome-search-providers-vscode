@@ -26,22 +26,6 @@ url = "https://raw.githubusercontent.com/swsnr/rust-supply-chain/refs/heads/main
 criteria = "safe-to-run"
 notes = "Just a local service with little to no external exposure, so safe-to-run is enough"
 
-[[exemptions.async-channel]]
-version = "2.3.1"
-criteria = "safe-to-run"
-
-[[exemptions.concurrent-queue]]
-version = "2.5.0"
-criteria = "safe-to-run"
-
-[[exemptions.event-listener]]
-version = "5.3.1"
-criteria = "safe-to-run"
-
-[[exemptions.event-listener-strategy]]
-version = "0.5.2"
-criteria = "safe-to-run"
-
 [[exemptions.fallible-streaming-iterator]]
 version = "0.1.9"
 criteria = "safe-to-run"
