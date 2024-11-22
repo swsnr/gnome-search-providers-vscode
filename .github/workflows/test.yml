@@ -18,9 +18,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
-      - run: cargo build --all-targets --locked
-      - run: cargo clippy --all-targets --locked
-      - run: cargo test --locked
+      - run: cargo build --all-targets --locked --features rusqlite/bundled
+      - run: cargo clippy --all-targets --locked --features rusqlite/bundled
+      - run: cargo test --locked --features rusqlite/bundled
       - run: cargo fmt -- --check
       - uses: EmbarkStudios/cargo-deny-action@v2
 
