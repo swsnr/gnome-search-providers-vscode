@@ -322,7 +322,7 @@ impl SearchProvider {
             move |_, app, platform_data| {
                 // Hold on to the search provider app while we're moving the new
                 // process to its own scope.
-                let _guard = search_provider_app.hold();
+                let guard = search_provider_app.hold();
                 glib::info!(
                     "Launched app {} with platform data {platform_data:?}",
                     app.id().unwrap()
@@ -350,21 +350,18 @@ impl SearchProvider {
                         escape_name_for_systemd(app.id().unwrap().trim_end_matches(".desktop")),
                         pid
                     );
-                    glib::spawn_future_local(glib::clone!(
-                        #[strong]
-                        search_provider_app,
-                        async move {
-                            let _guard = search_provider_app.hold();
-                            match move_to_scope(pid, scope_name).await {
-                                Ok(obj_path) => {
-                                    glib::info!("New process {pid} moved to scope at {obj_path:?}");
-                                }
-                                Err(error) => glib::error!(
-                                    "Failed to move process {pid} into a new scope: {error}"
-                                ),
+                    glib::spawn_future_local(glib::clone!(async move {
+                        match move_to_scope(pid, scope_name).await {
+                            Ok(obj_path) => {
+                                glib::info!("New process {pid} moved to scope at {obj_path:?}");
                             }
-                        }
-                    ));
+                            Err(error) => glib::error!(
+                                "Failed to move process {pid} into a new scope: {error}"
+                            ),
+                        };
+                        // Drop app only after the spawned process in its own scope
+                        drop(guard);
+                    }));
                 }
             }
         ));
