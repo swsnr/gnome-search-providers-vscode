@@ -16,8 +16,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+        id: toolchain
         with:
           components: clippy, rustfmt
+      # See https://github.com/actions/cache/blob/main/examples.md#rust---cargo
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-rust-${{ steps.toolchain.outputs.cachekey }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - run: cargo build --all-targets --locked --features rusqlite/bundled
       - run: cargo clippy --all-targets --locked --features rusqlite/bundled
       - run: cargo test --locked --features rusqlite/bundled
