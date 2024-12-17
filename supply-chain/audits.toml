@@ -1,11 +1,26 @@
 
 # cargo-vet audits file
 
+[[audits.cfg-expr]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.17.0 -> 0.17.2"
+
 [[audits.pkg-config]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-deploy"
 delta = "0.3.30 -> 0.3.31"
 notes = "Just a small bug fix around cargo directives for build.rs, no critical changes."
+
+[[audits.proc-macro2]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "1.0.89 -> 1.0.92"
+
+[[audits.unicode-ident]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "1.0.13 -> 1.0.14"
 
 [[trusted.async-trait]]
 criteria = "safe-to-run"
@@ -132,6 +147,18 @@ user-id = 3618 # David Tolnay (dtolnay)
 start = "2019-05-02"
 end = "2025-10-31"
 notes = "swsnr trusts dtolnay"
+
+[[trusted.serde]]
+criteria = "safe-to-run"
+user-id = 3618 # David Tolnay (dtolnay)
+start = "2019-03-01"
+end = "2025-12-17"
+
+[[trusted.serde_derive]]
+criteria = "safe-to-run"
+user-id = 3618 # David Tolnay (dtolnay)
+start = "2019-03-01"
+end = "2025-12-17"
 
 [[trusted.serde_repr]]
 criteria = "safe-to-run"
