@@ -14,7 +14,7 @@ use gio::{
     DesktopAppInfo, IOErrorEnum,
 };
 use gio::{ApplicationFlags, DBusNodeInfo};
-use glib::{UriFlags, Variant, VariantDict, VariantTy};
+use glib::{UriFlags, Variant, VariantDict};
 use rusqlite::{OpenFlags, OptionalExtension};
 use serde::Deserialize;
 
@@ -116,30 +116,31 @@ fn invalid_parameters() -> glib::Error {
     )
 }
 
-impl SearchProvider2Method {
-    /// Parse a method call to a search provider.
-    pub fn parse(
-        method_name: &str,
-        parameters: Variant,
-    ) -> Result<SearchProvider2Method, glib::Error> {
-        match method_name {
-            "GetInitialResultSet" => parameters
+impl DBusMethodCall for SearchProvider2Method {
+    fn parse_call(
+        _obj_path: &str,
+        _interface: Option<&str>,
+        method: &str,
+        params: glib::Variant,
+    ) -> Result<Self, glib::Error> {
+        match method {
+            "GetInitialResultSet" => params
                 .get::<GetInitialResultSet>()
                 .map(SearchProvider2Method::GetInitialResultSet)
                 .ok_or_else(invalid_parameters),
-            "GetSubsearchResultSet" => parameters
+            "GetSubsearchResultSet" => params
                 .get::<GetSubsearchResultSet>()
                 .map(SearchProvider2Method::GetSubsearchResultSet)
                 .ok_or_else(invalid_parameters),
-            "GetResultMetas" => parameters
+            "GetResultMetas" => params
                 .get::<GetResultMetas>()
                 .map(SearchProvider2Method::GetResultMetas)
                 .ok_or_else(invalid_parameters),
-            "ActivateResult" => parameters
+            "ActivateResult" => params
                 .get::<ActivateResult>()
                 .map(SearchProvider2Method::ActivateResult)
                 .ok_or_else(invalid_parameters),
-            "LaunchSearch" => parameters
+            "LaunchSearch" => params
                 .get::<LaunchSearch>()
                 .map(SearchProvider2Method::LaunchSearch)
                 .ok_or_else(invalid_parameters),
@@ -377,10 +378,7 @@ impl SearchProvider {
     ///
     /// Perform any side effects triggered by the call and return the appropriate
     /// result.
-    async fn handle_call(
-        &self,
-        call: SearchProvider2Method,
-    ) -> Result<Option<Variant>, glib::Error> {
+    fn handle_call(&self, call: SearchProvider2Method) -> Result<Option<Variant>, glib::Error> {
         // Hold on to the application while we're processing a DBus call.
         let _guard = self.search_provider_app.hold();
         match call {
@@ -478,23 +476,8 @@ impl SearchProvider {
         let search_provider = Rc::new(self);
         connection
             .register_object(object_path, interface_info)
-            .method_call(move |_, _, _, _, method_name, parameters, invocation| {
-                match SearchProvider2Method::parse(method_name, parameters) {
-                    Ok(call) => {
-                        let search_provider = search_provider.clone();
-                        glib::spawn_future_local(async move {
-                            match search_provider.handle_call(call).await {
-                                Ok(Some(variant)) if variant.type_() != VariantTy::TUPLE => {
-                                    invocation.return_value(Some(&(variant,).into()))
-                                }
-                                Ok(other) => invocation.return_value(other.as_ref()),
-                                Err(error) => invocation.return_gerror(error),
-                            }
-                        });
-                    }
-                    Err(error) => invocation.return_gerror(error),
-                }
-            })
+            .typed_method_call::<SearchProvider2Method>()
+            .invoke_and_return(move |_, _, call| search_provider.handle_call(call))
             .build()
     }
 }
