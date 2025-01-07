@@ -374,6 +374,13 @@ impl SearchProvider {
         }
     }
 
+    /// Launch the given `uri`, if any, or launch the app directly.
+    async fn launch_uri(&self, uri: Option<&str>) -> Result<(), glib::Error> {
+        self.code_app
+            .launch_uris_future(uri.as_slice(), Some(&self.launch_context))
+            .await
+    }
+
     /// Handle the given search provider method `call`.
     ///
     /// Perform any side effects triggered by the call and return the appropriate
@@ -446,9 +453,7 @@ impl SearchProvider {
                     "Launching application {} with URI {identifier}",
                     self.code_app.id().unwrap()
                 );
-                self.code_app
-                    .launch_uris_future(&[identifier.as_str()], Some(&self.launch_context))
-                    .await?;
+                self.launch_uri(Some(identifier.as_ref())).await?;
                 Ok(None)
             }
             SearchProvider2Method::LaunchSearch(_) => {
@@ -456,9 +461,7 @@ impl SearchProvider {
                     "Launching application {} directly",
                     self.code_app.id().unwrap()
                 );
-                self.code_app
-                    .launch_uris_future(&[], Some(&self.launch_context))
-                    .await?;
+                self.launch_uri(None).await?;
                 Ok(None)
             }
         }
