@@ -378,7 +378,10 @@ impl SearchProvider {
     ///
     /// Perform any side effects triggered by the call and return the appropriate
     /// result.
-    fn handle_call(&self, call: SearchProvider2Method) -> Result<Option<Variant>, glib::Error> {
+    async fn handle_call(
+        &self,
+        call: SearchProvider2Method,
+    ) -> Result<Option<Variant>, glib::Error> {
         // Hold on to the application while we're processing a DBus call.
         let _guard = self.search_provider_app.hold();
         match call {
@@ -443,10 +446,9 @@ impl SearchProvider {
                     "Launching application {} with URI {identifier}",
                     self.code_app.id().unwrap()
                 );
-                glib::spawn_future_local(
-                    self.code_app
-                        .launch_uris_future(&[identifier.as_str()], Some(&self.launch_context)),
-                );
+                self.code_app
+                    .launch_uris_future(&[identifier.as_str()], Some(&self.launch_context))
+                    .await?;
                 Ok(None)
             }
             SearchProvider2Method::LaunchSearch(_) => {
@@ -454,10 +456,9 @@ impl SearchProvider {
                     "Launching application {} directly",
                     self.code_app.id().unwrap()
                 );
-                glib::spawn_future_local(
-                    self.code_app
-                        .launch_uris_future(&[], Some(&self.launch_context)),
-                );
+                self.code_app
+                    .launch_uris_future(&[], Some(&self.launch_context))
+                    .await?;
                 Ok(None)
             }
         }
@@ -477,7 +478,10 @@ impl SearchProvider {
         connection
             .register_object(object_path, interface_info)
             .typed_method_call::<SearchProvider2Method>()
-            .invoke_and_return(move |_, _, call| search_provider.handle_call(call))
+            .invoke_and_return_future_local(move |_, _, call| {
+                let search_provider = search_provider.clone();
+                async move { search_provider.handle_call(call).await }
+            })
             .build()
     }
 }
