@@ -6,6 +6,11 @@ who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "0.17.0 -> 0.17.2"
 
+[[audits.pin-project-lite]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.2.15 -> 0.2.16"
+
 [[audits.pkg-config]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-deploy"
@@ -16,6 +21,16 @@ notes = "Just a small bug fix around cargo directives for build.rs, no critical 
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "1.0.89 -> 1.0.92"
+
+[[audits.quote]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "1.0.37 -> 1.0.38"
+
+[[audits.serde_json]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "1.0.134 -> 1.0.135"
 
 [[audits.unicode-ident]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
