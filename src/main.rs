@@ -12,10 +12,7 @@ use std::path::Path;
 use std::rc::Rc;
 use std::time::Duration;
 
-use gio::{
-    prelude::*, AppLaunchContext, Application, DBusCallFlags, DBusInterfaceInfo, DBusProxyFlags,
-    DesktopAppInfo, IOErrorEnum,
-};
+use gio::{prelude::*, Application, DBusInterfaceInfo, DesktopAppInfo, IOErrorEnum};
 use gio::{ApplicationFlags, DBusNodeInfo};
 use glib::{UriFlags, Variant, VariantDict};
 use rusqlite::{OpenFlags, OptionalExtension};
@@ -215,30 +212,6 @@ pub fn name_from_uri(uri_or_path: &str) -> Option<&str> {
     uri_or_path.split("/").filter(|seg| !seg.is_empty()).last()
 }
 
-/// Escape a systemd unit name.
-///
-/// See section "STRING ESCAPING FOR INCLUSION IN UNIT NAMES" in `systemd.unit(5)`
-/// for details about the algorithm.
-fn escape_name_for_systemd(name: &str) -> String {
-    if name.is_empty() {
-        "".to_string()
-    } else {
-        name.bytes()
-            .enumerate()
-            .map(|(n, b)| {
-                let c = char::from(b);
-                match c {
-                    '/' => '-'.to_string(),
-                    ':' | '_' | '0'..='9' | 'a'..='z' | 'A'..='Z' => c.to_string(),
-                    '.' if n > 0 => c.to_string(),
-                    _ => format!(r#"\x{b:02x}"#),
-                }
-            })
-            .collect::<Vec<_>>()
-            .join("")
-    }
-}
-
 #[derive(Debug, Variant)]
 struct StartTransientUnitParameters {
     name: String,
@@ -247,70 +220,10 @@ struct StartTransientUnitParameters {
     aux: Vec<(String, Vec<(String, Variant)>)>,
 }
 
-/// Move `pid` into the given `scope`, as a new transient unit.
-///
-/// This isolates the process from the current one.
-///
-/// Return the object path of the new transient unit, on the systemd manager.
-async fn move_to_scope(pid: i32, scope: String) -> Result<String, glib::Error> {
-    let flags = DBusProxyFlags::DO_NOT_AUTO_START_AT_CONSTRUCTION
-        | DBusProxyFlags::DO_NOT_CONNECT_SIGNALS
-        | DBusProxyFlags::DO_NOT_LOAD_PROPERTIES;
-    let systemd1 = gio::DBusProxy::for_bus_future(
-        gio::BusType::Session,
-        flags,
-        None,
-        "org.freedesktop.systemd1",
-        "/org/freedesktop/systemd1",
-        "org.freedesktop.systemd1.Manager",
-    )
-    .await?;
-
-    // Properties of the new unit.  Note that we have to convert the property
-    // value to a variant, and then box this variant in another variant, so that
-    // the properties array has type a(sv) as per the manager1 interface.
-    let properties = vec![
-        // I haven't found any documentation for the type of the PIDs property directly, but elsewhere
-        // in its DBus interface systemd always used u32 for PIDs.
-        (
-            "PIDs".to_string(),
-            glib::Variant::from_variant(&vec![u32::try_from(pid).unwrap()].to_variant()),
-        ),
-        // libgnome passes this property too, see
-        // https://gitlab.gnome.org/GNOME/gnome-desktop/-/blob/106a729c3f98b8ee56823a0a49fa8504f78dd355/libgnome-desktop/gnome-systemd.c#L100
-        //
-        // I'm not entirely sure how it's relevant but it seems a good idea to do what Gnome does.
-        (
-            "CollectMode".to_string(),
-            glib::Variant::from_variant(&"inactive-or-failed".to_variant()),
-        ),
-    ];
-    // Timeout for this DBus tool, chosen at a wild guess, and absolutely not
-    // backed by any kind of data or experience :)
-    let timeout = Duration::from_secs(1);
-    let parameters = StartTransientUnitParameters {
-        name: scope,
-        mode: "fail".to_string(),
-        properties,
-        aux: Vec::new(),
-    };
-    glib::debug!("Calling StartTransientUnit with {parameters:?}");
-    let reply = systemd1
-        .call_future(
-            "StartTransientUnit",
-            Some(&parameters.into()),
-            DBusCallFlags::NONE,
-            timeout.as_millis() as i32,
-        )
-        .await?;
-    Ok(reply.get::<(String,)>().unwrap().0)
-}
-
 struct SearchProvider {
     search_provider_app: Application,
     code_app: DesktopAppInfo,
     workspaces: Vec<String>,
-    launch_context: AppLaunchContext,
 }
 
 impl SearchProvider {
@@ -319,69 +232,47 @@ impl SearchProvider {
         code_app: DesktopAppInfo,
         workspaces: Vec<String>,
     ) -> Self {
-        let launch_context = AppLaunchContext::new();
-        launch_context.connect_launched(glib::clone!(
-            #[strong]
-            search_provider_app,
-            move |_, app, platform_data| {
-                // Hold on to the search provider app while we're moving the new
-                // process to its own scope.
-                let guard = search_provider_app.hold();
-                glib::info!(
-                    "Launched app {} with platform data {platform_data:?}",
-                    app.id().unwrap()
-                );
-                // The type of the pid property doesn't seem to be documented anywhere, but variant type
-                // errors indicate that the type is "i", i.e.gint32.
-                //
-                // See https://docs.gtk.org/glib/gvariant-format-strings.html#numeric-types
-                let pid = platform_data.get::<VariantDict>().and_then(|data| {
-                    data.lookup::<i32>("pid")
-                        .inspect_err(|error| {
-                            glib::error!(
-                                "platform_data.pid had type {} but expected type {}",
-                                error.actual,
-                                error.expected
-                            )
-                        })
-                        .ok()
-                        .flatten()
-                });
-                if let Some(pid) = pid {
-                    let scope_name = format!(
-                        "app-{}-{}-{}.scope",
-                        env!("CARGO_BIN_NAME"),
-                        escape_name_for_systemd(app.id().unwrap().trim_end_matches(".desktop")),
-                        pid
-                    );
-                    glib::spawn_future_local(glib::clone!(async move {
-                        match move_to_scope(pid, scope_name).await {
-                            Ok(obj_path) => {
-                                glib::info!("New process {pid} moved to scope at {obj_path:?}");
-                            }
-                            Err(error) => glib::error!(
-                                "Failed to move process {pid} into a new scope: {error}"
-                            ),
-                        };
-                        // Drop app only after the spawned process in its own scope
-                        drop(guard);
-                    }));
-                }
-            }
-        ));
         Self {
             search_provider_app,
             code_app,
             workspaces,
-            launch_context,
         }
     }
 
     /// Launch the given `uri`, if any, or launch the app directly.
+    ///
+    /// Launch the uri with this code via `gio launch` wrapped in `systemd-run`,
+    /// to make damn sure that VSCode gets its own scope.
+    ///
+    /// We cannot launch the desktop app file directly, e.g. with launch_uris,
+    /// and the move the new process to a separate scope using sytemd's DBus API
+    /// because vscode aggressively forks into background so fast, that we will
+    /// have lost track of its forked children before we get a chance to move
+    /// the whole process tree to a new scope.  This effectively means that the
+    /// actual VSCode process which shows the window then remains a child of our
+    /// own service scope, and lives and dies with the process of this search
+    /// provider service.  And since we auto-quit our service after a few idle
+    /// minutes we'd take down open VSCode windows with us.
+    ///
+    /// Since we can't get this down race-free via Gio/GLib itself, spawn a new
+    /// scope first with systemd-run and then spawn the app in with gio launch.
     async fn launch_uri(&self, uri: Option<&str>) -> Result<(), glib::Error> {
-        self.code_app
-            .launch_uris_future(uri.as_slice(), Some(&self.launch_context))
-            .await
+        let app_desktop_file = self.code_app.filename().unwrap();
+        let mut command = vec![
+            OsStr::new("/usr/bin/systemd-run"),
+            OsStr::new("--user"),
+            OsStr::new("--scope"),
+            OsStr::new("--same-dir"),
+            OsStr::new("/usr/bin/gio"),
+            OsStr::new("launch"),
+            OsStr::new(&app_desktop_file),
+        ];
+        command.extend_from_slice(uri.map(OsStr::new).as_slice());
+        glib::info!("Launching command {:?}", command);
+        let process = gio::Subprocess::newv(command.as_slice(), gio::SubprocessFlags::NONE)?;
+        process.wait_future().await?;
+        glib::info!("Command {:?} finished", command);
+        Ok(())
     }
 
     /// Handle the given search provider method `call`.
