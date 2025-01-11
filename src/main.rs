@@ -4,7 +4,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#![deny(warnings, clippy::all)]
+#![deny(warnings, clippy::all, clippy::pedantic,
+    // Guard against left-over debugging output
+    clippy::dbg_macro,
+    clippy::print_stderr,
+    clippy::print_stdout,
+    clippy::unimplemented,
+    clippy::use_debug,
+    clippy::todo,
+    // We must use Gtk's APIs to exit the app.
+    clippy::exit,
+    // Do not carelessly ignore errors
+    clippy::let_underscore_must_use,
+    clippy::let_underscore_untyped,
+)]
+#![allow(clippy::missing_panics_doc)]
 
 use std::ffi::OsStr;
 use std::fmt::Debug;
@@ -65,8 +79,7 @@ fn query_recently_opened_path_lists(
             glib::Error::new(
                 IOErrorEnum::Failed,
                 &format!(
-                    "Failed to query recently opened path lists from VSCode global storage: {}",
-                    error
+                    "Failed to query recently opened path lists from VSCode global storage: {error}",
                 ),
             )
         })?
@@ -75,8 +88,7 @@ fn query_recently_opened_path_lists(
                 glib::Error::new(
                     IOErrorEnum::InvalidData,
                     &format!(
-                        "Failed to deserialize recently opened path lists: {}",
-                        error
+                        "Failed to deserialize recently opened path lists: {error}",
                     ),
                 )
             })
@@ -165,6 +177,10 @@ impl DBusMethodCall for SearchProvider2Method {
 ///
 /// If one term out of `terms` does not match `uri` return a score of 0, regardless
 /// of how well other terms match.
+#[allow(
+    clippy::cast_precision_loss,
+    reason = "terms won't grow so large as to cause issues in f64 conversion"
+)]
 fn score_uri<S: AsRef<str>>(uri: &str, terms: &[S]) -> f64 {
     let uri = uri.to_lowercase();
     terms
@@ -204,12 +220,18 @@ where
             }
         })
         .collect::<Vec<_>>();
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::as_conversions,
+        reason = "Truncation intended to calculate a coarse ordering score"
+    )]
     scored.sort_by_key(|(score, _)| -((score * 1000.0) as i64));
     scored.into_iter().map(|(_, uri)| uri).collect::<Vec<_>>()
 }
 
+#[must_use]
 pub fn name_from_uri(uri_or_path: &str) -> Option<&str> {
-    uri_or_path.split("/").filter(|seg| !seg.is_empty()).last()
+    uri_or_path.split('/').filter(|seg| !seg.is_empty()).last()
 }
 
 #[derive(Debug, Variant)]
@@ -221,20 +243,16 @@ struct StartTransientUnitParameters {
 }
 
 struct SearchProvider {
-    search_provider_app: Application,
-    code_app: DesktopAppInfo,
+    app: Application,
+    code_app_info: DesktopAppInfo,
     workspaces: Vec<String>,
 }
 
 impl SearchProvider {
-    fn new(
-        search_provider_app: Application,
-        code_app: DesktopAppInfo,
-        workspaces: Vec<String>,
-    ) -> Self {
+    fn new(app: Application, code_app: DesktopAppInfo, workspaces: Vec<String>) -> Self {
         Self {
-            search_provider_app,
-            code_app,
+            app,
+            code_app_info: code_app,
             workspaces,
         }
     }
@@ -242,22 +260,23 @@ impl SearchProvider {
     /// Launch the given `uri`, if any, or launch the app directly.
     ///
     /// Launch the uri with this code via `gio launch` wrapped in `systemd-run`,
-    /// to make damn sure that VSCode gets its own scope.
+    /// to make damn sure that Visual Studio Code gets its own scope.
     ///
-    /// We cannot launch the desktop app file directly, e.g. with launch_uris,
-    /// and the move the new process to a separate scope using sytemd's DBus API
+    /// We cannot launch the desktop app file directly, e.g. with `launch_uris`,
+    /// and the move the new process to a separate scope using sytemd's D-Bus
+    /// API
     /// because vscode aggressively forks into background so fast, that we will
     /// have lost track of its forked children before we get a chance to move
     /// the whole process tree to a new scope.  This effectively means that the
-    /// actual VSCode process which shows the window then remains a child of our
+    /// actual Visual Studio Code process which shows the window then remains a child of our
     /// own service scope, and lives and dies with the process of this search
     /// provider service.  And since we auto-quit our service after a few idle
-    /// minutes we'd take down open VSCode windows with us.
+    /// minutes we'd take down open Visual Studio Code windows with us.
     ///
     /// Since we can't get this down race-free via Gio/GLib itself, spawn a new
     /// scope first with systemd-run and then spawn the app in with gio launch.
     async fn launch_uri(&self, uri: Option<&str>) -> Result<(), glib::Error> {
-        let app_desktop_file = self.code_app.filename().unwrap();
+        let app_desktop_file = self.code_app_info.filename().unwrap();
         let mut command = vec![
             OsStr::new("/usr/bin/systemd-run"),
             OsStr::new("--user"),
@@ -284,7 +303,7 @@ impl SearchProvider {
         call: SearchProvider2Method,
     ) -> Result<Option<Variant>, glib::Error> {
         // Hold on to the application while we're processing a DBus call.
-        let _guard = self.search_provider_app.hold();
+        let _guard = self.app.hold();
         match call {
             SearchProvider2Method::GetInitialResultSet(GetInitialResultSet(terms)) => {
                 glib::debug!("Searching for terms {terms:?}");
@@ -311,8 +330,8 @@ impl SearchProvider {
                     .map(|uri| {
                         let metas = VariantDict::new(None);
                         metas.insert("id", uri.as_str());
-                        match glib::Uri::parse(&uri, UriFlags::NONE).ok() {
-                            Some(parsed_uri) => {
+                        match glib::Uri::parse(&uri, UriFlags::NONE) {
+                            Ok(parsed_uri) => {
                                 metas.insert(
                                     "name",
                                     name_from_uri(parsed_uri.path().as_str())
@@ -327,15 +346,16 @@ impl SearchProvider {
                                     }
                                 };
                             }
-                            None => {
+                            Err(error) => {
+                                glib::warn!("Failed to parse {uri} as URI: {error}");
                                 metas.insert("name", name_from_uri(&uri).unwrap_or(uri.as_str()));
                                 metas.insert("description", uri.as_str());
                             }
                         }
                         if let Some(app_icon) =
-                            self.code_app.icon().and_then(|icon| icon.serialize())
+                            self.code_app_info.icon().and_then(|icon| icon.serialize())
                         {
-                            metas.insert("icon", app_icon)
+                            metas.insert("icon", app_icon);
                         }
                         metas
                     })
@@ -345,7 +365,7 @@ impl SearchProvider {
             SearchProvider2Method::ActivateResult(ActivateResult(identifier, _, _)) => {
                 glib::info!(
                     "Launching application {} with URI {identifier}",
-                    self.code_app.id().unwrap()
+                    self.code_app_info.id().unwrap()
                 );
                 self.launch_uri(Some(identifier.as_ref())).await?;
                 Ok(None)
@@ -353,7 +373,7 @@ impl SearchProvider {
             SearchProvider2Method::LaunchSearch(_) => {
                 glib::info!(
                     "Launching application {} directly",
-                    self.code_app.id().unwrap()
+                    self.code_app_info.id().unwrap()
                 );
                 self.launch_uri(None).await?;
                 Ok(None)
@@ -361,10 +381,10 @@ impl SearchProvider {
         }
     }
 
-    /// Register this search provider under `object_path` on a DBus `connection`.
+    /// Register this search provider under `object_path` on a D-Bus `connection`.
     ///
     /// Consume the search provider, as it gets moved into the callback closure for
-    /// DBus invocations.
+    /// D-Bus invocations.
     fn register(
         self,
         connection: &gio::DBusConnection,
