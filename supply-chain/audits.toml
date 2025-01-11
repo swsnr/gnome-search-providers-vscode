@@ -1,10 +1,20 @@
 
 # cargo-vet audits file
 
+[[audits.bitflags]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "2.6.0 -> 2.7.0"
+
 [[audits.cfg-expr]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "0.17.0 -> 0.17.2"
+
+[[audits.log]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.4.22 -> 0.4.24"
 
 [[audits.pin-project-lite]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
@@ -21,6 +31,11 @@ notes = "Just a small bug fix around cargo directives for build.rs, no critical 
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "1.0.89 -> 1.0.92"
+
+[[audits.proc-macro2]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "1.0.92 -> 1.0.93"
 
 [[audits.quote]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"

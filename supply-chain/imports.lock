@@ -127,8 +127,8 @@ user-login = "mbrubeck"
 user-name = "Matt Brubeck"
 
 [[publisher.syn]]
-version = "2.0.95"
-when = "2025-01-05"
+version = "2.0.96"
+when = "2025-01-10"
 user-id = 3618
 user-login = "dtolnay"
 user-name = "David Tolnay"
@@ -225,8 +225,8 @@ user-login = "kennykerr"
 user-name = "Kenny Kerr"
 
 [[publisher.winnow]]
-version = "0.6.22"
-when = "2025-01-03"
+version = "0.6.24"
+when = "2025-01-10"
 user-id = 6743
 user-login = "epage"
 user-name = "Ed Page"
