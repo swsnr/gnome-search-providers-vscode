@@ -264,14 +264,14 @@ impl SearchProvider {
     ///
     /// We cannot launch the desktop app file directly, e.g. with `launch_uris`,
     /// and the move the new process to a separate scope using sytemd's D-Bus
-    /// API
-    /// because vscode aggressively forks into background so fast, that we will
-    /// have lost track of its forked children before we get a chance to move
-    /// the whole process tree to a new scope.  This effectively means that the
-    /// actual Visual Studio Code process which shows the window then remains a child of our
-    /// own service scope, and lives and dies with the process of this search
-    /// provider service.  And since we auto-quit our service after a few idle
-    /// minutes we'd take down open Visual Studio Code windows with us.
+    /// API because vscode aggressively forks into background so fast, that we
+    /// will have lost track of its forked children before we get a chance to
+    /// move the whole process tree to a new scope.  This effectively means that
+    /// the actual Visual Studio Code process which shows the window then
+    /// remains a child of our own service scope, and lives and dies with the
+    /// process of this search provider service.  And since we auto-quit our
+    /// service after a few idle minutes we'd take down open Visual Studio Code
+    /// windows with us.
     ///
     /// Since we can't get this down race-free via Gio/GLib itself, spawn a new
     /// scope first with systemd-run and then spawn the app in with gio launch.
