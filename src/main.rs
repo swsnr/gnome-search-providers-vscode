@@ -20,16 +20,13 @@
 )]
 #![allow(clippy::missing_panics_doc)]
 
-use std::ffi::OsStr;
 use std::fmt::Debug;
-use std::path::Path;
-use std::rc::Rc;
 use std::time::Duration;
 
-use gio::{prelude::*, Application, DBusInterfaceInfo, DesktopAppInfo, IOErrorEnum};
-use gio::{ApplicationFlags, DBusNodeInfo};
-use glib::{UriFlags, Variant, VariantDict};
-use rusqlite::{OpenFlags, OptionalExtension};
+use gio::ApplicationFlags;
+use gio::{prelude::*, IOErrorEnum};
+use glib::{Object, UriFlags, Variant};
+use rusqlite::OptionalExtension;
 use serde::Deserialize;
 
 static G_LOG_DOMAIN: &str = "VSCodeSearchProvider";
@@ -242,200 +239,111 @@ struct StartTransientUnitParameters {
     aux: Vec<(String, Vec<(String, Variant)>)>,
 }
 
-struct SearchProvider {
-    app: Application,
-    code_app_info: DesktopAppInfo,
-    workspaces: Vec<String>,
+glib::wrapper! {
+    pub struct SearchProviderServiceApplication(ObjectSubclass<imp::SearchProviderServiceApplication>)
+        @extends gio::Application,
+        @implements gio::ActionGroup, gio::ActionMap;
 }
 
-impl SearchProvider {
-    fn new(app: Application, code_app: DesktopAppInfo, workspaces: Vec<String>) -> Self {
-        Self {
-            app,
-            code_app_info: code_app,
-            workspaces,
-        }
-    }
-
-    /// Launch the given `uri`, if any, or launch the app directly.
-    ///
-    /// Launch the uri with this code via `gio launch` wrapped in `systemd-run`,
-    /// to make damn sure that Visual Studio Code gets its own scope.
-    ///
-    /// We cannot launch the desktop app file directly, e.g. with `launch_uris`,
-    /// and the move the new process to a separate scope using sytemd's D-Bus
-    /// API because vscode aggressively forks into background so fast, that we
-    /// will have lost track of its forked children before we get a chance to
-    /// move the whole process tree to a new scope.  This effectively means that
-    /// the actual Visual Studio Code process which shows the window then
-    /// remains a child of our own service scope, and lives and dies with the
-    /// process of this search provider service.  And since we auto-quit our
-    /// service after a few idle minutes we'd take down open Visual Studio Code
-    /// windows with us.
-    ///
-    /// Since we can't get this down race-free via Gio/GLib itself, spawn a new
-    /// scope first with systemd-run and then spawn the app in with gio launch.
-    async fn launch_uri(&self, uri: Option<&str>) -> Result<(), glib::Error> {
-        let app_desktop_file = self.code_app_info.filename().unwrap();
-        let mut command = vec![
-            OsStr::new("/usr/bin/systemd-run"),
-            OsStr::new("--user"),
-            OsStr::new("--scope"),
-            OsStr::new("--same-dir"),
-            OsStr::new("/usr/bin/gio"),
-            OsStr::new("launch"),
-            OsStr::new(&app_desktop_file),
-        ];
-        command.extend_from_slice(uri.map(OsStr::new).as_slice());
-        glib::info!("Launching command {:?}", command);
-        let process = gio::Subprocess::newv(command.as_slice(), gio::SubprocessFlags::NONE)?;
-        process.wait_future().await?;
-        glib::info!("Command {:?} finished", command);
-        Ok(())
-    }
-
-    /// Handle the given search provider method `call`.
-    ///
-    /// Perform any side effects triggered by the call and return the appropriate
-    /// result.
-    async fn handle_call(
-        &self,
-        call: SearchProvider2Method,
-    ) -> Result<Option<Variant>, glib::Error> {
-        // Hold on to the application while we're processing a DBus call.
-        let _guard = self.app.hold();
-        match call {
-            SearchProvider2Method::GetInitialResultSet(GetInitialResultSet(terms)) => {
-                glib::debug!("Searching for terms {terms:?}");
-                Ok(Some(
-                    find_matching_uris(&self.workspaces, terms.as_slice()).into(),
-                ))
-            }
-            SearchProvider2Method::GetSubsearchResultSet(GetSubsearchResultSet(
-                previous_results,
-                terms,
-            )) => {
-                glib::debug!(
-                    "Searching for terms {terms:?} in {} previous results",
-                    previous_results.len()
-                );
-                Ok(Some(
-                    find_matching_uris(previous_results, terms.as_slice()).into(),
-                ))
-            }
-            SearchProvider2Method::GetResultMetas(GetResultMetas(identifiers)) => {
-                glib::debug!("Get metadata for {identifiers:?}");
-                let metas: Vec<VariantDict> = identifiers
-                    .into_iter()
-                    .map(|uri| {
-                        let metas = VariantDict::new(None);
-                        metas.insert("id", uri.as_str());
-                        match glib::Uri::parse(&uri, UriFlags::NONE) {
-                            Ok(parsed_uri) => {
-                                metas.insert(
-                                    "name",
-                                    name_from_uri(parsed_uri.path().as_str())
-                                        .unwrap_or(uri.as_str()),
-                                );
-                                match parsed_uri.scheme().as_str() {
-                                    "file:" if parsed_uri.host().is_none() => {
-                                        metas.insert("description", parsed_uri.path().as_str());
-                                    }
-                                    _ => {
-                                        metas.insert("description", parsed_uri.to_str().as_str());
-                                    }
-                                };
-                            }
-                            Err(error) => {
-                                glib::warn!("Failed to parse {uri} as URI: {error}");
-                                metas.insert("name", name_from_uri(&uri).unwrap_or(uri.as_str()));
-                                metas.insert("description", uri.as_str());
-                            }
-                        }
-                        if let Some(app_icon) =
-                            self.code_app_info.icon().and_then(|icon| icon.serialize())
-                        {
-                            metas.insert("icon", app_icon);
-                        }
-                        metas
-                    })
-                    .collect::<Vec<_>>();
-                Ok(Some(metas.into()))
-            }
-            SearchProvider2Method::ActivateResult(ActivateResult(identifier, _, _)) => {
-                glib::info!(
-                    "Launching application {} with URI {identifier}",
-                    self.code_app_info.id().unwrap()
-                );
-                self.launch_uri(Some(identifier.as_ref())).await?;
-                Ok(None)
-            }
-            SearchProvider2Method::LaunchSearch(_) => {
-                glib::info!(
-                    "Launching application {} directly",
-                    self.code_app_info.id().unwrap()
-                );
-                self.launch_uri(None).await?;
-                Ok(None)
-            }
-        }
-    }
-
-    /// Register this search provider under `object_path` on a D-Bus `connection`.
-    ///
-    /// Consume the search provider, as it gets moved into the callback closure for
-    /// D-Bus invocations.
-    fn register(
-        self,
-        connection: &gio::DBusConnection,
-        object_path: &str,
-        interface_info: &DBusInterfaceInfo,
-    ) -> Result<gio::RegistrationId, glib::Error> {
-        let search_provider = Rc::new(self);
-        connection
-            .register_object(object_path, interface_info)
-            .typed_method_call::<SearchProvider2Method>()
-            .invoke_and_return_future_local(move |_, _, call| {
-                let search_provider = search_provider.clone();
-                async move { search_provider.handle_call(call).await }
-            })
+impl Default for SearchProviderServiceApplication {
+    fn default() -> Self {
+        Object::builder()
+            .property("application-id", "de.swsnr.VSCodeSearchProvider")
+            .property("flags", ApplicationFlags::IS_SERVICE)
+            // Exit one minute after release the app, i.e. in our case after finishing
+            // the last DBus call.
+            .property(
+                "inactivity-timeout",
+                u32::try_from(Duration::from_secs(60).as_millis()).unwrap(),
+            )
             .build()
     }
 }
 
-/// Load workspaces from the given connection, and return all workspace URIs.
-fn load_workspaces(connection: &rusqlite::Connection) -> Result<Vec<String>, glib::Error> {
-    Ok(query_recently_opened_path_lists(connection)?
-        .unwrap_or_default()
-        .entries
-        .unwrap_or_default()
-        .into_iter()
-        .filter_map(|entry| match entry {
-            StorageOpenedPathsListEntry::Workspace { workspace } => Some(workspace.config_path),
-            StorageOpenedPathsListEntry::Folder { uri } => Some(uri),
-            StorageOpenedPathsListEntry::File { .. } => None,
+mod imp {
+    use std::cell::RefCell;
+    use std::ffi::OsStr;
+    use std::path::Path;
+
+    use futures_util::future::join_all;
+    use gio::prelude::ApplicationExt;
+    use gio::subclass::prelude::*;
+    use gio::{DBusNodeInfo, IOErrorEnum};
+    use glib::{UriFlags, VariantDict};
+    use rusqlite::OpenFlags;
+
+    #[allow(clippy::wildcard_imports)]
+    use super::*;
+
+    async fn get_icon(desktop_id: &'static str) -> Option<glib::Variant> {
+        gio::spawn_blocking(|| {
+            gio::DesktopAppInfo::new(desktop_id)
+                .and_then(|app| app.icon())
+                .and_then(|icon| icon.serialize())
         })
-        .collect())
-}
+        .await
+        .unwrap()
+    }
 
-fn open_connection<P: AsRef<Path>>(db_path: P) -> Result<rusqlite::Connection, glib::Error> {
-    let flags = OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX;
-    rusqlite::Connection::open_with_flags(db_path.as_ref(), flags).map_err(|error| {
-        glib::Error::new(
-            IOErrorEnum::Failed,
-            &format!(
-                "Failed to open connection to {}: {error}",
-                db_path.as_ref().display()
-            ),
-        )
-    })
-}
+    async fn get_result_metas(desktop_id: &'static str, uri: &str) -> VariantDict {
+        let metas = VariantDict::new(None);
+        metas.insert("id", uri);
+        match glib::Uri::parse(uri, UriFlags::NONE) {
+            Ok(parsed_uri) => {
+                metas.insert(
+                    "name",
+                    name_from_uri(parsed_uri.path().as_str()).unwrap_or(uri),
+                );
+                match parsed_uri.scheme().as_str() {
+                    "file:" if parsed_uri.host().is_none() => {
+                        metas.insert("description", parsed_uri.path().as_str());
+                    }
+                    _ => {
+                        metas.insert("description", parsed_uri.to_str().as_str());
+                    }
+                };
+            }
+            Err(error) => {
+                glib::warn!("Failed to parse {uri} as URI: {error}");
+                metas.insert("name", name_from_uri(uri).unwrap_or(uri));
+                metas.insert("description", uri);
+            }
+        }
+        if let Some(icon) = get_icon(desktop_id).await {
+            metas.insert("icon", icon);
+        }
+        metas
+    }
 
-fn startup(app: &gio::Application) {
-    // Hold on to the application during startup, to avoid early exit.
-    let _guard = app.hold();
+    fn load_workspaces(connection: &rusqlite::Connection) -> Result<Vec<String>, glib::Error> {
+        Ok(query_recently_opened_path_lists(connection)?
+            .unwrap_or_default()
+            .entries
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|entry| match entry {
+                StorageOpenedPathsListEntry::Workspace { workspace } => Some(workspace.config_path),
+                StorageOpenedPathsListEntry::Folder { uri } => Some(uri),
+                StorageOpenedPathsListEntry::File { .. } => None,
+            })
+            .collect())
+    }
 
-    let providers = [
+    fn open_connection<P: AsRef<Path>>(db_path: P) -> Result<rusqlite::Connection, glib::Error> {
+        let flags = OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX;
+        rusqlite::Connection::open_with_flags(db_path.as_ref(), flags).map_err(|error| {
+            glib::Error::new(
+                IOErrorEnum::Failed,
+                &format!(
+                    "Failed to open connection to {}: {error}",
+                    db_path.as_ref().display()
+                ),
+            )
+        })
+    }
+
+    // Known providers, as pair of desktop ID and configuration directory.
+    static PROVIDERS: [(&str, &str); 3] = [
         // The standard Arch Linux code package from community
         ("code-oss.desktop", "Code - OSS"),
         // The standard codium package on Linux from here: https://github.com/VSCodium/vscodium.
@@ -445,52 +353,201 @@ fn startup(app: &gio::Application) {
         ("code.desktop", "Code"),
     ];
 
-    let interface = DBusNodeInfo::for_xml(SEARCH_PROVIDER2_XML)
-        .unwrap()
-        .lookup_interface("org.gnome.Shell.SearchProvider2")
-        .unwrap();
-    let user_config_dir = glib::user_config_dir();
+    #[derive(Default)]
+    pub struct SearchProviderServiceApplication {
+        registered_object: RefCell<Vec<gio::RegistrationId>>,
+    }
 
-    let connection = app.dbus_connection().unwrap();
-    for (desktop_id, config_dir_name) in providers {
-        if let Some(vscode_app) = DesktopAppInfo::new(desktop_id) {
-            let object_path = format!(
-                "{}/{}",
-                app.dbus_object_path().unwrap(),
-                vscode_app.id().unwrap().trim_end_matches(".desktop")
-            );
-            let db_path = user_config_dir
-                .join(config_dir_name)
-                .join("User")
-                .join("globalStorage")
-                .join("state.vscdb");
-            glib::info!(
-                "Found app {desktop_id}, loading workspaces from db at {}",
-                db_path.display()
-            );
-            match open_connection(&db_path).and_then(|c| load_workspaces(&c)) {
-                Ok(workspaces) => {
-                    glib::info!("Found {} workspaces for {desktop_id}, exposing search provider at {object_path}", workspaces.len());
-                    let provider = SearchProvider::new(app.clone(), vscode_app, workspaces);
-                    if let Err(error) = provider.register(&connection, &object_path, &interface) {
-                        glib::error!(
-                            "Skipping {desktop_id}, failed to register on {}, {error}",
-                            object_path,
-                        );
-                    }
+    impl SearchProviderServiceApplication {
+        /// Launch the given `uri`, if any, or launch the app directly.
+        ///
+        /// Launch the uri with this code via `gio launch` wrapped in `systemd-run`,
+        /// to make damn sure that Visual Studio Code gets its own scope.
+        ///
+        /// We cannot launch the desktop app file directly, e.g. with `launch_uris`,
+        /// and the move the new process to a separate scope using sytemd's D-Bus
+        /// API because vscode aggressively forks into background so fast, that we
+        /// will have lost track of its forked children before we get a chance to
+        /// move the whole process tree to a new scope.  This effectively means that
+        /// the actual Visual Studio Code process which shows the window then
+        /// remains a child of our own service scope, and lives and dies with the
+        /// process of this search provider service.  And since we auto-quit our
+        /// service after a few idle minutes we'd take down open Visual Studio Code
+        /// windows with us.
+        ///
+        /// Since we can't get this down race-free via Gio/GLib itself, spawn a new
+        /// scope first with systemd-run and then spawn the app in with gio launch.
+        async fn launch_uri(
+            &self,
+            desktop_id: &'static str,
+            uri: Option<&str>,
+        ) -> Result<(), glib::Error> {
+            let desktop_file = gio::spawn_blocking(|| {
+                gio::DesktopAppInfo::new(desktop_id).and_then(|app| app.filename())
+            })
+            .await
+            .unwrap()
+            .ok_or(glib::Error::new(
+                IOErrorEnum::NotFound,
+                &format!("Application {desktop_id} not found"),
+            ))?;
+            let mut command = vec![
+                OsStr::new("/usr/bin/systemd-run"),
+                OsStr::new("--user"),
+                OsStr::new("--scope"),
+                OsStr::new("--same-dir"),
+                OsStr::new("/usr/bin/gio"),
+                OsStr::new("launch"),
+                OsStr::new(&desktop_file),
+            ];
+            command.extend_from_slice(uri.map(OsStr::new).as_slice());
+            glib::info!("Launching command {:?}", command);
+            let process = gio::Subprocess::newv(command.as_slice(), gio::SubprocessFlags::NONE)?;
+            process.wait_future().await?;
+            glib::info!("Command {:?} finished", command);
+            Ok(())
+        }
+
+        async fn dispatch_search_provider(
+            &self,
+            call: SearchProvider2Method,
+            desktop_id: &'static str,
+            config_directory: &str,
+        ) -> Result<Option<glib::Variant>, glib::Error> {
+            let _guard = self.obj().hold();
+            match call {
+                SearchProvider2Method::GetInitialResultSet(GetInitialResultSet(terms)) => {
+                    glib::debug!("Searching for terms {terms:?}");
+                    let db_path = glib::user_config_dir()
+                        .join(config_directory)
+                        .join("User")
+                        .join("globalStorage")
+                        .join("state.vscdb");
+                    glib::info!("Loading workspaces from db at {}", db_path.display());
+                    let workspaces = gio::spawn_blocking(move || {
+                        glib::debug!("Loading workspaces from {}", db_path.display());
+                        open_connection(&db_path).and_then(|c| load_workspaces(&c))
+                    })
+                    .await
+                    .unwrap()?;
+
+                    Ok(Some(
+                        find_matching_uris(&workspaces, terms.as_slice()).into(),
+                    ))
                 }
-                Err(error) => {
-                    glib::error!(
-                        "Skipping {desktop_id}, failed to load workspaces from {}: {error}",
-                        db_path.display()
+                SearchProvider2Method::GetSubsearchResultSet(GetSubsearchResultSet(
+                    previous_results,
+                    terms,
+                )) => {
+                    glib::debug!(
+                        "Searching for terms {terms:?} in {} previous results",
+                        previous_results.len()
                     );
+                    Ok(Some(
+                        find_matching_uris(previous_results, terms.as_slice()).into(),
+                    ))
+                }
+                SearchProvider2Method::GetResultMetas(GetResultMetas(identifiers)) => {
+                    let metas = join_all(
+                        identifiers
+                            .iter()
+                            .map(|uri| get_result_metas(desktop_id, uri)),
+                    )
+                    .await;
+                    Ok(Some(metas.into()))
+                }
+                SearchProvider2Method::ActivateResult(ActivateResult(identifier, _, _)) => {
+                    glib::info!("Launching application {desktop_id} with URI {identifier}",);
+                    self.launch_uri(desktop_id, Some(identifier.as_ref()))
+                        .await?;
+                    Ok(None)
+                }
+                SearchProvider2Method::LaunchSearch(_) => {
+                    glib::info!("Launching application {desktop_id} directly",);
+                    self.launch_uri(desktop_id, None).await?;
+                    Ok(None)
+                }
+            }
+        }
+
+        fn register_all_providers(
+            &self,
+            connection: &gio::DBusConnection,
+            base_path: &str,
+        ) -> Result<(), glib::Error> {
+            let interface = DBusNodeInfo::for_xml(SEARCH_PROVIDER2_XML)?
+                .lookup_interface("org.gnome.Shell.SearchProvider2")
+                .ok_or(glib::Error::new(
+                    IOErrorEnum::NotFound,
+                    "Interface org.gnome.Shell.SearchProvider2 not found",
+                ))?;
+            for (desktop_id, config_directory) in PROVIDERS {
+                let object_path = format!(
+                    "{base_path}/{}",
+                    desktop_id.replace('-', "_").trim_end_matches(".desktop")
+                );
+                glib::debug!("Registering provider for {desktop_id} at {object_path}");
+                let id = connection
+                    .register_object(&object_path, &interface)
+                    .typed_method_call::<SearchProvider2Method>()
+                    .invoke_and_return_future_local(glib::clone!(
+                        #[strong(rename_to = app)]
+                        self.obj(),
+                        move |_, _, call| {
+                            let _guard = app.hold();
+                            let app = app.clone();
+                            async move {
+                                app.imp()
+                                    .dispatch_search_provider(call, desktop_id, config_directory)
+                                    .await
+                            }
+                        }
+                    ))
+                    .build()?;
+                self.registered_object.borrow_mut().push(id);
+            }
+            Ok(())
+        }
+    }
+
+    #[glib::object_subclass]
+    impl ObjectSubclass for SearchProviderServiceApplication {
+        const NAME: &'static str = "SearchProviderServiceApplication";
+
+        type Type = super::SearchProviderServiceApplication;
+
+        type ParentType = gio::Application;
+    }
+
+    impl ObjectImpl for SearchProviderServiceApplication {}
+
+    impl ApplicationImpl for SearchProviderServiceApplication {
+        fn startup(&self) {
+            self.parent_startup();
+            let _guard = self.obj().hold();
+            let dbus_connection = self.obj().dbus_connection().unwrap();
+            let base_path = self.obj().dbus_object_path().unwrap();
+            // TODO: we'll need to move registration to dbus_register, pending gio changes
+            // See https://github.com/gtk-rs/gtk-rs-core/pull/1634
+            self.register_all_providers(&dbus_connection, &base_path)
+                .unwrap();
+        }
+
+        fn shutdown(&self) {
+            self.parent_shutdown();
+            // TODO: we'll need to move this to dbus_unregister, pending gio changes
+            // See https://github.com/gtk-rs/gtk-rs-core/pull/1634
+            let dbus_connection = self.obj().dbus_connection().unwrap();
+            for id in self.registered_object.take() {
+                if let Err(error) = dbus_connection.unregister_object(id) {
+                    glib::warn!("Failed to unregister object: {error}");
                 }
             }
         }
     }
 }
 
-pub fn main() -> glib::ExitCode {
+fn main() -> glib::ExitCode {
     static LOGGER: glib::GlibLogger = glib::GlibLogger::new(
         glib::GlibLoggerFormat::Structured,
         glib::GlibLoggerDomain::CrateTarget,
@@ -498,15 +555,7 @@ pub fn main() -> glib::ExitCode {
     log::set_logger(&LOGGER).unwrap();
     log::set_max_level(log::LevelFilter::Trace);
 
-    let app = gio::Application::builder()
-        .application_id("de.swsnr.VSCodeSearchProvider")
-        .flags(ApplicationFlags::IS_SERVICE)
-        // Exit one minute after release the app, i.e. in our case after finishing
-        // the last DBus call.
-        .inactivity_timeout(Duration::from_secs(60).as_millis().try_into().unwrap())
-        .build();
-
+    let app = SearchProviderServiceApplication::default();
     app.set_version(env!("CARGO_PKG_VERSION"));
-    app.connect_startup(startup);
     app.run()
 }
