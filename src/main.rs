@@ -23,14 +23,11 @@
 use std::fmt::Debug;
 use std::time::Duration;
 
+use gio::prelude::*;
 use gio::ApplicationFlags;
-use gio::{prelude::*, IOErrorEnum};
 use glib::{Object, UriFlags, Variant};
 
 static G_LOG_DOMAIN: &str = "VSCodeSearchProvider";
-
-/// The literal XML definition of the interface.
-static SEARCH_PROVIDER2_XML: &str = include_str!("../dbus-1/org.gnome.ShellSearchProvider2.xml");
 
 mod workspaces {
     use std::path::Path;
@@ -133,71 +130,90 @@ mod workspaces {
     }
 }
 
-#[derive(Debug, Variant)]
-pub struct GetInitialResultSet(Vec<String>);
+mod searchprovider2 {
+    use gio::{prelude::DBusMethodCall, DBusNodeInfo, IOErrorEnum};
+    use glib::Variant;
 
-#[derive(Debug, Variant)]
-pub struct GetSubsearchResultSet(Vec<String>, Vec<String>);
+    /// The literal XML definition of the interface.
+    static SEARCH_PROVIDER2_XML: &str =
+        include_str!("../dbus-1/org.gnome.ShellSearchProvider2.xml");
 
-#[derive(Debug, Variant)]
-pub struct GetResultMetas(Vec<String>);
+    #[derive(Debug, Variant)]
+    pub struct GetInitialResultSet(pub Vec<String>);
 
-#[derive(Debug, Variant)]
-pub struct ActivateResult(String, Vec<String>, u32);
+    #[derive(Debug, Variant)]
+    pub struct GetSubsearchResultSet(pub Vec<String>, pub Vec<String>);
 
-#[derive(Debug, Variant)]
-pub struct LaunchSearch(Vec<String>, u32);
+    #[derive(Debug, Variant)]
+    pub struct GetResultMetas(pub Vec<String>);
 
-/// Method calls a search provider supports.
-#[derive(Debug)]
-pub enum SearchProvider2Method {
-    GetInitialResultSet(GetInitialResultSet),
-    GetSubsearchResultSet(GetSubsearchResultSet),
-    GetResultMetas(GetResultMetas),
-    ActivateResult(ActivateResult),
-    LaunchSearch(LaunchSearch),
-}
+    #[derive(Debug, Variant)]
+    pub struct ActivateResult(pub String, pub Vec<String>, pub u32);
 
-fn invalid_parameters() -> glib::Error {
-    glib::Error::new(
-        IOErrorEnum::InvalidArgument,
-        "Invalid parameters for method",
-    )
-}
+    #[derive(Debug, Variant)]
+    pub struct LaunchSearch(pub Vec<String>, pub u32);
 
-impl DBusMethodCall for SearchProvider2Method {
-    fn parse_call(
-        _obj_path: &str,
-        _interface: Option<&str>,
-        method: &str,
-        params: glib::Variant,
-    ) -> Result<Self, glib::Error> {
-        match method {
-            "GetInitialResultSet" => params
-                .get::<GetInitialResultSet>()
-                .map(SearchProvider2Method::GetInitialResultSet)
-                .ok_or_else(invalid_parameters),
-            "GetSubsearchResultSet" => params
-                .get::<GetSubsearchResultSet>()
-                .map(SearchProvider2Method::GetSubsearchResultSet)
-                .ok_or_else(invalid_parameters),
-            "GetResultMetas" => params
-                .get::<GetResultMetas>()
-                .map(SearchProvider2Method::GetResultMetas)
-                .ok_or_else(invalid_parameters),
-            "ActivateResult" => params
-                .get::<ActivateResult>()
-                .map(SearchProvider2Method::ActivateResult)
-                .ok_or_else(invalid_parameters),
-            "LaunchSearch" => params
-                .get::<LaunchSearch>()
-                .map(SearchProvider2Method::LaunchSearch)
-                .ok_or_else(invalid_parameters),
-            _ => Err(glib::Error::new(
-                IOErrorEnum::InvalidArgument,
-                "Unexpected method",
-            )),
+    /// Method calls a search provider supports.
+    #[derive(Debug)]
+    #[allow(dead_code)]
+    pub enum Method {
+        GetInitialResultSet(GetInitialResultSet),
+        GetSubsearchResultSet(GetSubsearchResultSet),
+        GetResultMetas(GetResultMetas),
+        ActivateResult(ActivateResult),
+        LaunchSearch(LaunchSearch),
+    }
+
+    fn invalid_parameters() -> glib::Error {
+        glib::Error::new(
+            IOErrorEnum::InvalidArgument,
+            "Invalid parameters for method",
+        )
+    }
+
+    impl DBusMethodCall for Method {
+        fn parse_call(
+            _obj_path: &str,
+            _interface: Option<&str>,
+            method: &str,
+            params: glib::Variant,
+        ) -> Result<Self, glib::Error> {
+            match method {
+                "GetInitialResultSet" => params
+                    .get::<GetInitialResultSet>()
+                    .map(Method::GetInitialResultSet)
+                    .ok_or_else(invalid_parameters),
+                "GetSubsearchResultSet" => params
+                    .get::<GetSubsearchResultSet>()
+                    .map(Method::GetSubsearchResultSet)
+                    .ok_or_else(invalid_parameters),
+                "GetResultMetas" => params
+                    .get::<GetResultMetas>()
+                    .map(Method::GetResultMetas)
+                    .ok_or_else(invalid_parameters),
+                "ActivateResult" => params
+                    .get::<ActivateResult>()
+                    .map(Method::ActivateResult)
+                    .ok_or_else(invalid_parameters),
+                "LaunchSearch" => params
+                    .get::<LaunchSearch>()
+                    .map(Method::LaunchSearch)
+                    .ok_or_else(invalid_parameters),
+                _ => Err(glib::Error::new(
+                    IOErrorEnum::InvalidArgument,
+                    "Unexpected method",
+                )),
+            }
         }
+    }
+
+    pub fn load_interface() -> Result<gio::DBusInterfaceInfo, glib::Error> {
+        DBusNodeInfo::for_xml(SEARCH_PROVIDER2_XML)?
+            .lookup_interface("org.gnome.Shell.SearchProvider2")
+            .ok_or(glib::Error::new(
+                IOErrorEnum::NotFound,
+                "Interface org.gnome.Shell.SearchProvider2 not found",
+            ))
     }
 }
 
@@ -307,9 +323,11 @@ mod imp {
     use futures_util::future::join_all;
     use gio::prelude::ApplicationExt;
     use gio::subclass::prelude::*;
-    use gio::{DBusNodeInfo, IOErrorEnum};
+    use gio::IOErrorEnum;
     use glib::{UriFlags, VariantDict};
 
+    #[allow(clippy::wildcard_imports)]
+    use super::searchprovider2::*;
     #[allow(clippy::wildcard_imports)]
     use super::*;
 
@@ -421,13 +439,13 @@ mod imp {
 
         async fn dispatch_search_provider(
             &self,
-            call: SearchProvider2Method,
+            call: searchprovider2::Method,
             desktop_id: &'static str,
             config_directory: &str,
         ) -> Result<Option<glib::Variant>, glib::Error> {
             let _guard = self.obj().hold();
             match call {
-                SearchProvider2Method::GetInitialResultSet(GetInitialResultSet(terms)) => {
+                Method::GetInitialResultSet(GetInitialResultSet(terms)) => {
                     glib::debug!("Searching for terms {terms:?}");
                     let db_path = glib::user_config_dir()
                         .join(config_directory)
@@ -446,10 +464,7 @@ mod imp {
                         find_matching_uris(&workspaces, terms.as_slice()).into(),
                     ))
                 }
-                SearchProvider2Method::GetSubsearchResultSet(GetSubsearchResultSet(
-                    previous_results,
-                    terms,
-                )) => {
+                Method::GetSubsearchResultSet(GetSubsearchResultSet(previous_results, terms)) => {
                     glib::debug!(
                         "Searching for terms {terms:?} in {} previous results",
                         previous_results.len()
@@ -458,7 +473,7 @@ mod imp {
                         find_matching_uris(previous_results, terms.as_slice()).into(),
                     ))
                 }
-                SearchProvider2Method::GetResultMetas(GetResultMetas(identifiers)) => {
+                Method::GetResultMetas(GetResultMetas(identifiers)) => {
                     let metas = join_all(
                         identifiers
                             .iter()
@@ -467,13 +482,13 @@ mod imp {
                     .await;
                     Ok(Some(metas.into()))
                 }
-                SearchProvider2Method::ActivateResult(ActivateResult(identifier, _, _)) => {
+                Method::ActivateResult(ActivateResult(identifier, _, _)) => {
                     glib::info!("Launching application {desktop_id} with URI {identifier}",);
                     self.launch_uri(desktop_id, Some(identifier.as_ref()))
                         .await?;
                     Ok(None)
                 }
-                SearchProvider2Method::LaunchSearch(_) => {
+                Method::LaunchSearch(_) => {
                     glib::info!("Launching application {desktop_id} directly",);
                     self.launch_uri(desktop_id, None).await?;
                     Ok(None)
@@ -486,12 +501,7 @@ mod imp {
             connection: &gio::DBusConnection,
             base_path: &str,
         ) -> Result<(), glib::Error> {
-            let interface = DBusNodeInfo::for_xml(SEARCH_PROVIDER2_XML)?
-                .lookup_interface("org.gnome.Shell.SearchProvider2")
-                .ok_or(glib::Error::new(
-                    IOErrorEnum::NotFound,
-                    "Interface org.gnome.Shell.SearchProvider2 not found",
-                ))?;
+            let interface = searchprovider2::load_interface()?;
             for (desktop_id, config_directory) in PROVIDERS {
                 let object_path = format!(
                     "{base_path}/{}",
@@ -500,7 +510,7 @@ mod imp {
                 glib::debug!("Registering provider for {desktop_id} at {object_path}");
                 let id = connection
                     .register_object(&object_path, &interface)
-                    .typed_method_call::<SearchProvider2Method>()
+                    .typed_method_call::<searchprovider2::Method>()
                     .invoke_and_return_future_local(glib::clone!(
                         #[strong(rename_to = app)]
                         self.obj(),
