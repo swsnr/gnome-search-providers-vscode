@@ -57,6 +57,12 @@ who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "1.0.13 -> 1.0.14"
 
+[[trusted.async-broadcast]]
+criteria = "safe-to-run"
+user-id = 6423 # Zeeshan Ali Khan (zeenix)
+start = "2021-05-07"
+end = "2026-01-19"
+
 [[trusted.async-channel]]
 criteria = "safe-to-run"
 user-id = 33035 # Taiki Endo (taiki-e)
@@ -155,6 +161,13 @@ criteria = "safe-to-run"
 user-id = 33035 # Taiki Endo (taiki-e)
 start = "2022-07-17"
 end = "2026-01-19"
+
+[[trusted.endi]]
+criteria = "safe-to-run"
+user-id = 6423 # Zeeshan Ali Khan (zeenix)
+start = "2023-12-10"
+end = "2026-01-19"
+notes = "Prolific DBus developer"
 
 [[trusted.errno]]
 criteria = "safe-to-run"
@@ -273,6 +286,12 @@ notes = "swsnr trusts BurntSushi"
 criteria = "safe-to-run"
 user-id = 10
 start = "2019-05-15"
+end = "2026-01-19"
+
+[[trusted.ordered-stream]]
+criteria = "safe-to-run"
+user-id = 6423 # Zeeshan Ali Khan (zeenix)
+start = "2023-01-02"
 end = "2026-01-19"
 
 [[trusted.polling]]
@@ -517,3 +536,52 @@ user-id = 6743 # Ed Page (epage)
 start = "2023-02-22"
 end = "2025-10-31"
 notes = "swsnr trusts epage"
+
+[[trusted.xdg-home]]
+criteria = "safe-to-run"
+user-id = 6423 # Zeeshan Ali Khan (zeenix)
+start = "2023-03-28"
+end = "2026-01-19"
+notes = "Prolific DBus developer"
+
+[[trusted.zbus]]
+criteria = "safe-to-run"
+user-id = 6423 # Zeeshan Ali Khan (zeenix)
+start = "2020-07-19"
+end = "2026-01-19"
+notes = "Prolific DBus developer"
+
+[[trusted.zbus_macros]]
+criteria = "safe-to-run"
+user-id = 6423 # Zeeshan Ali Khan (zeenix)
+start = "2020-07-19"
+end = "2026-01-19"
+notes = "Prolific DBus developer"
+
+[[trusted.zbus_names]]
+criteria = "safe-to-run"
+user-id = 6423 # Zeeshan Ali Khan (zeenix)
+start = "2021-07-30"
+end = "2026-01-19"
+notes = "Prolific DBus developer"
+
+[[trusted.zvariant]]
+criteria = "safe-to-run"
+user-id = 6423 # Zeeshan Ali Khan (zeenix)
+start = "2019-12-30"
+end = "2026-01-19"
+notes = "Prolific DBus developer"
+
+[[trusted.zvariant_derive]]
+criteria = "safe-to-run"
+user-id = 6423 # Zeeshan Ali Khan (zeenix)
+start = "2020-05-22"
+end = "2026-01-19"
+notes = "Prolific DBus developer"
+
+[[trusted.zvariant_utils]]
+criteria = "safe-to-run"
+user-id = 6423 # Zeeshan Ali Khan (zeenix)
+start = "2023-03-07"
+end = "2026-01-19"
+notes = "Prolific DBus developer"
