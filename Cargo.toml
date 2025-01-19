@@ -15,8 +15,9 @@ edition = "2021"
 publish = false
 
 [dependencies]
-gio = { version = "0.20.7", features = ["v2_80"] }
-glib = { version = "0.20.7", features = ["log", "log_macros", "v2_66"] }
+# TODO: Change back to released 0.20.x after https://github.com/gtk-rs/gtk-rs-core/pull/1634 was merged and released
+gio = { git ="https://github.com/swsnr/gtk-rs-core.git", branch = "dbus_register_vfunc", features = ["v2_80"] }
+glib = { git ="https://github.com/swsnr/gtk-rs-core.git", branch = "dbus_register_vfunc", features = ["log", "log_macros", "v2_66"] }
 log = "0.4.22"
 rusqlite = { version = "0.32.1", features = ["serde_json"] }
 serde = { version = "1.0.216", features = ["derive"] }

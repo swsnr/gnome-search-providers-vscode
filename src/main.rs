@@ -578,24 +578,20 @@ mod imp {
     impl ObjectImpl for SearchProviderServiceApplication {}
 
     impl ApplicationImpl for SearchProviderServiceApplication {
-        fn startup(&self) {
-            self.parent_startup();
-            let _guard = self.obj().hold();
-            let dbus_connection = self.obj().dbus_connection().unwrap();
-            let base_path = self.obj().dbus_object_path().unwrap();
-            // TODO: we'll need to move registration to dbus_register, pending gio changes
-            // See https://github.com/gtk-rs/gtk-rs-core/pull/1634
-            self.register_all_providers(&dbus_connection, &base_path)
-                .unwrap();
+        fn dbus_register(
+            &self,
+            connection: &gio::DBusConnection,
+            object_path: &str,
+        ) -> Result<bool, glib::Error> {
+            self.parent_dbus_register(connection, object_path)?;
+            self.register_all_providers(connection, object_path)?;
+            Ok(true)
         }
 
-        fn shutdown(&self) {
-            self.parent_shutdown();
-            // TODO: we'll need to move this to dbus_unregister, pending gio changes
-            // See https://github.com/gtk-rs/gtk-rs-core/pull/1634
-            let dbus_connection = self.obj().dbus_connection().unwrap();
+        fn dbus_unregister(&self, connection: &gio::DBusConnection, object_path: &str) {
+            self.parent_dbus_unregister(connection, object_path);
             for id in self.registered_object.take() {
-                if let Err(error) = dbus_connection.unregister_object(id) {
+                if let Err(error) = connection.unregister_object(id) {
                     glib::warn!("Failed to unregister object: {error}");
                 }
             }

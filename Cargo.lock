@@ -125,9 +125,8 @@ dependencies = [
 
 [[package]]
 name = "gio"
-version = "0.20.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a517657589a174be9f60c667f1fec8b7ac82ed5db4ebf56cf073a3b5955d8e2e"
+version = "0.21.0"
+source = "git+https://github.com/swsnr/gtk-rs-core.git?branch=dbus_register_vfunc#179386b4781d2ea471d902ae553e801cefa775cd"
 dependencies = [
  "futures-channel",
  "futures-core",
@@ -142,9 +141,8 @@ dependencies = [
 
 [[package]]
 name = "gio-sys"
-version = "0.20.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8446d9b475730ebef81802c1738d972db42fde1c5a36a627ebc4d665fc87db04"
+version = "0.21.0"
+source = "git+https://github.com/swsnr/gtk-rs-core.git?branch=dbus_register_vfunc#179386b4781d2ea471d902ae553e801cefa775cd"
 dependencies = [
  "glib-sys",
  "gobject-sys",
@@ -155,9 +153,8 @@ dependencies = [
 
 [[package]]
 name = "glib"
-version = "0.20.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f969edf089188d821a30cde713b6f9eb08b20c63fc2e584aba2892a7984a8cc0"
+version = "0.21.0"
+source = "git+https://github.com/swsnr/gtk-rs-core.git?branch=dbus_register_vfunc#179386b4781d2ea471d902ae553e801cefa775cd"
 dependencies = [
  "bitflags",
  "futures-channel",
@@ -177,9 +174,8 @@ dependencies = [
 
 [[package]]
 name = "glib-macros"
-version = "0.20.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "715601f8f02e71baef9c1f94a657a9a77c192aea6097cf9ae7e5e177cd8cde68"
+version = "0.21.0"
+source = "git+https://github.com/swsnr/gtk-rs-core.git?branch=dbus_register_vfunc#179386b4781d2ea471d902ae553e801cefa775cd"
 dependencies = [
  "heck",
  "proc-macro-crate",
@@ -190,9 +186,8 @@ dependencies = [
 
 [[package]]
 name = "glib-sys"
-version = "0.20.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b360ff0f90d71de99095f79c526a5888c9c92fc9ee1b19da06c6f5e75f0c2a53"
+version = "0.21.0"
+source = "git+https://github.com/swsnr/gtk-rs-core.git?branch=dbus_register_vfunc#179386b4781d2ea471d902ae553e801cefa775cd"
 dependencies = [
  "libc",
  "system-deps",
@@ -213,9 +208,8 @@ dependencies = [
 
 [[package]]
 name = "gobject-sys"
-version = "0.20.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67a56235e971a63bfd75abb13ef70064e1346388723422a68580d8a6fbac6423"
+version = "0.21.0"
+source = "git+https://github.com/swsnr/gtk-rs-core.git?branch=dbus_register_vfunc#179386b4781d2ea471d902ae553e801cefa775cd"
 dependencies = [
  "glib-sys",
  "libc",
