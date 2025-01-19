@@ -513,7 +513,6 @@ checksum = "07e28edb80900c19c28f1072f2e8aeca7fa06b23cd4169cefe1af5aa3260783f"
 name = "gnome-search-providers-vscode"
 version = "2.3.0"
 dependencies = [
- "dirs",
  "freedesktop-desktop-entry",
  "futures-util",
  "logcontrol-tracing",

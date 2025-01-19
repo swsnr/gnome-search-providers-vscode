@@ -35,6 +35,19 @@ use tracing::{debug, error, info, instrument, Level};
 use tracing_subscriber::{layer::SubscriberExt, Registry};
 use zbus::conn::Builder;
 
+mod xdg {
+    use std::path::PathBuf;
+
+    fn user_home() -> PathBuf {
+        std::env::var_os("HOME").unwrap().into()
+    }
+
+    /// Return `XDG_CONFIG_HOME`.
+    pub fn config_home() -> PathBuf {
+        std::env::var_os("XDG_CONFIG_HOME").map_or_else(|| user_home().join(".config"), Into::into)
+    }
+}
+
 mod workspaces {
     use std::io::{Error, ErrorKind, Result};
     use std::path::Path;
@@ -449,8 +462,7 @@ struct CodeVariant {
 impl CodeVariant {
     fn database_path(&self) -> PathBuf {
         // Linux always has a config directory so we can safely unwrap here.
-        dirs::config_dir()
-            .unwrap()
+        xdg::config_home()
             .join(self.config_directory_name)
             .join("User")
             .join("globalStorage")
