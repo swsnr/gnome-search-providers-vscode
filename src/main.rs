@@ -26,71 +26,111 @@ use std::time::Duration;
 use gio::ApplicationFlags;
 use gio::{prelude::*, IOErrorEnum};
 use glib::{Object, UriFlags, Variant};
-use rusqlite::OptionalExtension;
-use serde::Deserialize;
 
 static G_LOG_DOMAIN: &str = "VSCodeSearchProvider";
 
 /// The literal XML definition of the interface.
 static SEARCH_PROVIDER2_XML: &str = include_str!("../dbus-1/org.gnome.ShellSearchProvider2.xml");
 
-#[derive(Debug, Deserialize)]
-struct WorkspaceEntry {
-    #[serde(rename = "configPath")]
-    config_path: String,
-}
+mod workspaces {
+    use std::path::Path;
 
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum StorageOpenedPathsListEntry {
-    Workspace {
-        workspace: WorkspaceEntry,
-    },
-    Folder {
-        #[serde(rename = "folderUri")]
-        uri: String,
-    },
-    File {
-        #[serde(rename = "fileUri")]
-        #[allow(dead_code)]
-        uri: String,
-    },
-}
+    use gio::IOErrorEnum;
+    use rusqlite::{OpenFlags, OptionalExtension};
+    use serde::Deserialize;
 
-#[derive(Debug, Deserialize, Default)]
-pub struct StorageOpenedPathsList {
-    entries: Option<Vec<StorageOpenedPathsListEntry>>,
-}
+    #[derive(Debug, Deserialize)]
+    struct WorkspaceEntry {
+        #[serde(rename = "configPath")]
+        config_path: String,
+    }
 
-fn query_recently_opened_path_lists(
-    connection: &rusqlite::Connection,
-) -> Result<Option<StorageOpenedPathsList>, glib::Error> {
-    connection
-        .query_row_and_then(
-            "SELECT value FROM ItemTable WHERE key = 'history.recentlyOpenedPathsList';",
-            [],
-            |row| row.get(0),
-        )
-        .optional()
-        .map_err(|error| {
+    #[derive(Debug, Deserialize)]
+    #[serde(untagged)]
+    enum StorageOpenedPathsListEntry {
+        Workspace {
+            workspace: WorkspaceEntry,
+        },
+        Folder {
+            #[serde(rename = "folderUri")]
+            uri: String,
+        },
+        File {
+            #[serde(rename = "fileUri")]
+            #[allow(dead_code)]
+            uri: String,
+        },
+    }
+
+    #[derive(Debug, Deserialize, Default)]
+    struct StorageOpenedPathsList {
+        entries: Option<Vec<StorageOpenedPathsListEntry>>,
+    }
+
+    fn query_recently_opened_path_lists(
+        connection: &rusqlite::Connection,
+    ) -> Result<Option<StorageOpenedPathsList>, glib::Error> {
+        connection
+            .query_row_and_then(
+                "SELECT value FROM ItemTable WHERE key = 'history.recentlyOpenedPathsList';",
+                [],
+                |row| row.get(0),
+            )
+            .optional()
+            .map_err(|error| {
+                glib::Error::new(
+                    IOErrorEnum::Failed,
+                    &format!(
+                        "Failed to query recently opened path lists from VSCode global storage: {error}",
+                    ),
+                )
+            })?
+            .map(|value| {
+                serde_json::from_value(value).map_err(|error| {
+                    glib::Error::new(
+                        IOErrorEnum::InvalidData,
+                        &format!(
+                            "Failed to deserialize recently opened path lists: {error}",
+                        ),
+                    )
+                })
+            })
+            .transpose()
+    }
+
+    fn load_workspaces(connection: &rusqlite::Connection) -> Result<Vec<String>, glib::Error> {
+        Ok(query_recently_opened_path_lists(connection)?
+            .unwrap_or_default()
+            .entries
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|entry| match entry {
+                StorageOpenedPathsListEntry::Workspace { workspace } => Some(workspace.config_path),
+                StorageOpenedPathsListEntry::Folder { uri } => Some(uri),
+                StorageOpenedPathsListEntry::File { .. } => None,
+            })
+            .collect())
+    }
+
+    fn open_connection<P: AsRef<Path>>(db_path: P) -> Result<rusqlite::Connection, glib::Error> {
+        let flags = OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX;
+        rusqlite::Connection::open_with_flags(db_path.as_ref(), flags).map_err(|error| {
             glib::Error::new(
                 IOErrorEnum::Failed,
                 &format!(
-                    "Failed to query recently opened path lists from VSCode global storage: {error}",
+                    "Failed to open connection to {}: {error}",
+                    db_path.as_ref().display()
                 ),
             )
-        })?
-        .map(|value| {
-            serde_json::from_value(value).map_err(|error| {
-                glib::Error::new(
-                    IOErrorEnum::InvalidData,
-                    &format!(
-                        "Failed to deserialize recently opened path lists: {error}",
-                    ),
-                )
-            })
         })
-        .transpose()
+    }
+
+    pub fn load_workspaces_from_path<P: AsRef<Path>>(
+        db_path: P,
+    ) -> Result<Vec<String>, glib::Error> {
+        let connection = open_connection(db_path)?;
+        load_workspaces(&connection)
+    }
 }
 
 #[derive(Debug, Variant)]
@@ -263,14 +303,12 @@ impl Default for SearchProviderServiceApplication {
 mod imp {
     use std::cell::RefCell;
     use std::ffi::OsStr;
-    use std::path::Path;
 
     use futures_util::future::join_all;
     use gio::prelude::ApplicationExt;
     use gio::subclass::prelude::*;
     use gio::{DBusNodeInfo, IOErrorEnum};
     use glib::{UriFlags, VariantDict};
-    use rusqlite::OpenFlags;
 
     #[allow(clippy::wildcard_imports)]
     use super::*;
@@ -313,33 +351,6 @@ mod imp {
             metas.insert("icon", icon);
         }
         metas
-    }
-
-    fn load_workspaces(connection: &rusqlite::Connection) -> Result<Vec<String>, glib::Error> {
-        Ok(query_recently_opened_path_lists(connection)?
-            .unwrap_or_default()
-            .entries
-            .unwrap_or_default()
-            .into_iter()
-            .filter_map(|entry| match entry {
-                StorageOpenedPathsListEntry::Workspace { workspace } => Some(workspace.config_path),
-                StorageOpenedPathsListEntry::Folder { uri } => Some(uri),
-                StorageOpenedPathsListEntry::File { .. } => None,
-            })
-            .collect())
-    }
-
-    fn open_connection<P: AsRef<Path>>(db_path: P) -> Result<rusqlite::Connection, glib::Error> {
-        let flags = OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX;
-        rusqlite::Connection::open_with_flags(db_path.as_ref(), flags).map_err(|error| {
-            glib::Error::new(
-                IOErrorEnum::Failed,
-                &format!(
-                    "Failed to open connection to {}: {error}",
-                    db_path.as_ref().display()
-                ),
-            )
-        })
     }
 
     // Known providers, as pair of desktop ID and configuration directory.
@@ -426,7 +437,7 @@ mod imp {
                     glib::info!("Loading workspaces from db at {}", db_path.display());
                     let workspaces = gio::spawn_blocking(move || {
                         glib::debug!("Loading workspaces from {}", db_path.display());
-                        open_connection(&db_path).and_then(|c| load_workspaces(&c))
+                        super::workspaces::load_workspaces_from_path(db_path)
                     })
                     .await
                     .unwrap()?;
