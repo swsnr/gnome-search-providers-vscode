@@ -75,35 +75,35 @@ notes = "swsnr trusts BurntSushi"
 
 [[trusted.gio]]
 criteria = "safe-to-run"
-user-id = 3623 # Sebastian Dröge (sdroege)
+user-id = 3623
 start = "2020-08-28"
 end = "2025-10-31"
 notes = "swsnr trusts sdroege"
 
 [[trusted.gio-sys]]
 criteria = "safe-to-run"
-user-id = 3623 # Sebastian Dröge (sdroege)
+user-id = 3623
 start = "2020-09-16"
 end = "2025-10-31"
 notes = "swsnr trusts sdroege"
 
 [[trusted.glib]]
 criteria = "safe-to-run"
-user-id = 3623 # Sebastian Dröge (sdroege)
+user-id = 3623
 start = "2020-02-14"
 end = "2025-10-31"
 notes = "swsnr trusts sdroege"
 
 [[trusted.glib-macros]]
 criteria = "safe-to-run"
-user-id = 3623 # Sebastian Dröge (sdroege)
+user-id = 3623
 start = "2021-07-08"
 end = "2025-10-31"
 notes = "swsnr trusts sdroege"
 
 [[trusted.glib-sys]]
 criteria = "safe-to-run"
-user-id = 3623 # Sebastian Dröge (sdroege)
+user-id = 3623
 start = "2020-09-16"
 end = "2025-10-31"
 notes = "swsnr trusts sdroege"
@@ -117,7 +117,7 @@ notes = "swsnr trusts BurntSushi"
 
 [[trusted.gobject-sys]]
 criteria = "safe-to-run"
-user-id = 3623 # Sebastian Dröge (sdroege)
+user-id = 3623
 start = "2022-01-15"
 end = "2025-10-31"
 notes = "swsnr trusts sdroege"
