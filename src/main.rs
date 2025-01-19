@@ -25,7 +25,7 @@ use std::time::Duration;
 
 use gio::prelude::*;
 use gio::ApplicationFlags;
-use glib::{Object, UriFlags, Variant};
+use glib::{Object, Variant};
 
 static G_LOG_DOMAIN: &str = "VSCodeSearchProvider";
 
@@ -217,74 +217,82 @@ mod searchprovider2 {
     }
 }
 
-/// Calculate how well `uri` matches all of the given `terms`.
-///
-/// The URI gets scored for each term according to how far to the right it appears in the URI,
-/// under the assumption that the right most part of an URI path is the most specific.
-///
-/// All matches are done on the lowercase text, i.e. case-insensitive.
-///
-/// Return a positive score if all of `terms` match `uri`.  The higher the score the
-/// better the match, in relation to other matching values.  In and by itself however
-/// the score has no intrinsic meaning.
-///
-/// If one term out of `terms` does not match `uri` return a score of 0, regardless
-/// of how well other terms match.
-#[allow(
-    clippy::cast_precision_loss,
-    reason = "terms won't grow so large as to cause issues in f64 conversion"
-)]
-fn score_uri<S: AsRef<str>>(uri: &str, terms: &[S]) -> f64 {
-    let uri = uri.to_lowercase();
-    terms
-        .iter()
-        .try_fold(0.0, |score, term| {
-            uri.rfind(&term.as_ref().to_lowercase())
-                // We add 1 to avoid returning zero if the term matches right at the beginning.
-                .map(|index| score + ((index + 1) as f64 / uri.len() as f64))
-        })
-        .unwrap_or(0.0)
-}
+mod search {
+    use std::fmt::Debug;
 
-/// Find all URIs from `uris` which match all of `terms`.
-///
-/// Score every URI, and filter out all URIs with a score of 0 or less.
-fn find_matching_uris<I, U, S>(uris: I, terms: &[S]) -> Vec<U>
-where
-    S: AsRef<str> + Debug,
-    U: AsRef<str>,
-    I: IntoIterator<Item = U>,
-{
-    let mut scored = uris
-        .into_iter()
-        .filter_map(|uri| {
-            let decoded_uri = glib::Uri::parse(uri.as_ref(), UriFlags::NONE)
-                .ok()
-                .map(|s| s.to_str());
-            let scored_uri = decoded_uri
-                .as_ref()
-                .map_or_else(|| uri.as_ref(), |s| s.as_str());
-            let score = score_uri(scored_uri, terms);
-            glib::trace!("URI {scored_uri} scores {score} against {terms:?}");
-            if score <= 0.0 {
-                None
-            } else {
-                Some((score, uri))
-            }
-        })
-        .collect::<Vec<_>>();
+    use glib::UriFlags;
+
+    use super::G_LOG_DOMAIN;
+
+    /// Calculate how well `uri` matches all of the given `terms`.
+    ///
+    /// The URI gets scored for each term according to how far to the right it appears in the URI,
+    /// under the assumption that the right most part of an URI path is the most specific.
+    ///
+    /// All matches are done on the lowercase text, i.e. case-insensitive.
+    ///
+    /// Return a positive score if all of `terms` match `uri`.  The higher the score the
+    /// better the match, in relation to other matching values.  In and by itself however
+    /// the score has no intrinsic meaning.
+    ///
+    /// If one term out of `terms` does not match `uri` return a score of 0, regardless
+    /// of how well other terms match.
     #[allow(
-        clippy::cast_possible_truncation,
-        clippy::as_conversions,
-        reason = "Truncation intended to calculate a coarse ordering score"
+        clippy::cast_precision_loss,
+        reason = "terms won't grow so large as to cause issues in f64 conversion"
     )]
-    scored.sort_by_key(|(score, _)| -((score * 1000.0) as i64));
-    scored.into_iter().map(|(_, uri)| uri).collect::<Vec<_>>()
-}
+    fn score_uri<S: AsRef<str>>(uri: &str, terms: &[S]) -> f64 {
+        let uri = uri.to_lowercase();
+        terms
+            .iter()
+            .try_fold(0.0, |score, term| {
+                uri.rfind(&term.as_ref().to_lowercase())
+                    // We add 1 to avoid returning zero if the term matches right at the beginning.
+                    .map(|index| score + ((index + 1) as f64 / uri.len() as f64))
+            })
+            .unwrap_or(0.0)
+    }
 
-#[must_use]
-pub fn name_from_uri(uri_or_path: &str) -> Option<&str> {
-    uri_or_path.split('/').filter(|seg| !seg.is_empty()).last()
+    /// Find all URIs from `uris` which match all of `terms`.
+    ///
+    /// Score every URI, and filter out all URIs with a score of 0 or less.
+    pub fn find_matching_uris<I, U, S>(uris: I, terms: &[S]) -> Vec<U>
+    where
+        S: AsRef<str> + Debug,
+        U: AsRef<str>,
+        I: IntoIterator<Item = U>,
+    {
+        let mut scored = uris
+            .into_iter()
+            .filter_map(|uri| {
+                let decoded_uri = glib::Uri::parse(uri.as_ref(), UriFlags::NONE)
+                    .ok()
+                    .map(|s| s.to_str());
+                let scored_uri = decoded_uri
+                    .as_ref()
+                    .map_or_else(|| uri.as_ref(), |s| s.as_str());
+                let score = score_uri(scored_uri, terms);
+                glib::trace!("URI {scored_uri} scores {score} against {terms:?}");
+                if score <= 0.0 {
+                    None
+                } else {
+                    Some((score, uri))
+                }
+            })
+            .collect::<Vec<_>>();
+        #[allow(
+            clippy::cast_possible_truncation,
+            clippy::as_conversions,
+            reason = "Truncation intended to calculate a coarse ordering score"
+        )]
+        scored.sort_by_key(|(score, _)| -((score * 1000.0) as i64));
+        scored.into_iter().map(|(_, uri)| uri).collect::<Vec<_>>()
+    }
+
+    #[must_use]
+    pub fn name_from_uri(uri_or_path: &str) -> Option<&str> {
+        uri_or_path.split('/').filter(|seg| !seg.is_empty()).last()
+    }
 }
 
 #[derive(Debug, Variant)]
@@ -321,15 +329,14 @@ mod imp {
     use std::ffi::OsStr;
 
     use futures_util::future::join_all;
-    use gio::prelude::ApplicationExt;
+    use gio::prelude::*;
     use gio::subclass::prelude::*;
     use gio::IOErrorEnum;
     use glib::{UriFlags, VariantDict};
 
     #[allow(clippy::wildcard_imports)]
     use super::searchprovider2::*;
-    #[allow(clippy::wildcard_imports)]
-    use super::*;
+    use super::{search, searchprovider2, G_LOG_DOMAIN};
 
     async fn get_icon(desktop_id: &'static str) -> Option<glib::Variant> {
         gio::spawn_blocking(|| {
@@ -348,7 +355,7 @@ mod imp {
             Ok(parsed_uri) => {
                 metas.insert(
                     "name",
-                    name_from_uri(parsed_uri.path().as_str()).unwrap_or(uri),
+                    search::name_from_uri(parsed_uri.path().as_str()).unwrap_or(uri),
                 );
                 match parsed_uri.scheme().as_str() {
                     "file:" if parsed_uri.host().is_none() => {
@@ -361,7 +368,7 @@ mod imp {
             }
             Err(error) => {
                 glib::warn!("Failed to parse {uri} as URI: {error}");
-                metas.insert("name", name_from_uri(uri).unwrap_or(uri));
+                metas.insert("name", search::name_from_uri(uri).unwrap_or(uri));
                 metas.insert("description", uri);
             }
         }
@@ -461,7 +468,7 @@ mod imp {
                     .unwrap()?;
 
                     Ok(Some(
-                        find_matching_uris(&workspaces, terms.as_slice()).into(),
+                        search::find_matching_uris(&workspaces, terms.as_slice()).into(),
                     ))
                 }
                 Method::GetSubsearchResultSet(GetSubsearchResultSet(previous_results, terms)) => {
@@ -470,7 +477,7 @@ mod imp {
                         previous_results.len()
                     );
                     Ok(Some(
-                        find_matching_uris(previous_results, terms.as_slice()).into(),
+                        search::find_matching_uris(previous_results, terms.as_slice()).into(),
                     ))
                 }
                 Method::GetResultMetas(GetResultMetas(identifiers)) => {
