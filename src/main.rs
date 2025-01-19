@@ -38,6 +38,8 @@ use zbus::conn::Builder;
 mod xdg {
     use std::path::PathBuf;
 
+    use freedesktop_desktop_entry::DesktopEntry;
+
     fn user_home() -> PathBuf {
         std::env::var_os("HOME").unwrap().into()
     }
@@ -45,6 +47,34 @@ mod xdg {
     /// Return `XDG_CONFIG_HOME`.
     pub fn config_home() -> PathBuf {
         std::env::var_os("XDG_CONFIG_HOME").map_or_else(|| user_home().join(".config"), Into::into)
+    }
+
+    /// Return `XDG_DATA_HOME`.
+    pub fn data_home() -> PathBuf {
+        std::env::var_os("XDG_DATA_HOME")
+            .map_or_else(|| user_home().join(".local").join("share"), Into::into)
+    }
+
+    /// Return `XDG_DATA_DIRS`.
+    pub fn data_dirs() -> Vec<PathBuf> {
+        match std::env::var_os("XDG_DATA_DIRS") {
+            Some(dirs) => std::env::split_paths(&dirs).map(Into::into).collect(),
+            None => vec!["/usr/local/share/".into(), "/usr/share/".into()],
+        }
+    }
+
+    pub fn find_desktop_entry(app_id: &str) -> Option<DesktopEntry> {
+        let mut data_dirs = data_dirs();
+        let mut dirs = Vec::with_capacity(data_dirs.len() + 1);
+        dirs.push(data_home());
+        dirs.append(&mut data_dirs);
+        dirs.into_iter()
+            .map(|d| {
+                d.join("applications")
+                    .join(app_id)
+                    .with_extension("desktop")
+            })
+            .find_map(|file| DesktopEntry::from_path::<&str>(file, None).ok())
     }
 }
 
@@ -471,16 +501,13 @@ impl CodeVariant {
 
     #[instrument(skip(self), fields(app_id = self.app_id))]
     fn find_desktop_entry(&self) -> Option<DesktopEntry<'static>> {
-        freedesktop_desktop_entry::Iter::new(freedesktop_desktop_entry::default_paths())
-            .entries::<&str>(None)
-            .find(|entry| entry.appid == self.app_id)
-            .inspect(|desktop_entry| {
-                debug!(
-                    "Found desktop entry {} for {}",
-                    desktop_entry.path.display(),
-                    self.app_id,
-                );
-            })
+        xdg::find_desktop_entry(self.app_id).inspect(|desktop_entry| {
+            debug!(
+                "Found desktop entry {} for {}",
+                desktop_entry.path.display(),
+                self.app_id,
+            );
+        })
     }
 }
 
