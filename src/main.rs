@@ -20,12 +20,11 @@
 )]
 #![allow(clippy::missing_panics_doc)]
 
-use std::fmt::Debug;
 use std::time::Duration;
 
 use gio::prelude::*;
 use gio::ApplicationFlags;
-use glib::{Object, Variant};
+use glib::Object;
 
 static G_LOG_DOMAIN: &str = "VSCodeSearchProvider";
 
@@ -293,14 +292,6 @@ mod search {
     pub fn name_from_uri(uri_or_path: &str) -> Option<&str> {
         uri_or_path.split('/').filter(|seg| !seg.is_empty()).last()
     }
-}
-
-#[derive(Debug, Variant)]
-struct StartTransientUnitParameters {
-    name: String,
-    mode: String,
-    properties: Vec<(String, Variant)>,
-    aux: Vec<(String, Vec<(String, Variant)>)>,
 }
 
 glib::wrapper! {
