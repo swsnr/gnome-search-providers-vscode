@@ -130,8 +130,10 @@ mod workspaces {
 }
 
 mod searchprovider2 {
-    use gio::{prelude::DBusMethodCall, DBusNodeInfo, IOErrorEnum};
-    use glib::Variant;
+    use std::borrow::Cow;
+
+    use gio::{prelude::*, DBusNodeInfo, IOErrorEnum};
+    use glib::{Variant, VariantDict};
 
     /// The literal XML definition of the interface.
     static SEARCH_PROVIDER2_XML: &str =
@@ -203,6 +205,39 @@ mod searchprovider2 {
                     "Unexpected method",
                 )),
             }
+        }
+    }
+
+    #[derive(Debug, Default)]
+    pub struct ResultMetas {
+        pub id: String,
+        pub name: String,
+        pub description: String,
+        pub icon: Option<Variant>,
+    }
+
+    impl ToVariant for ResultMetas {
+        fn to_variant(&self) -> glib::Variant {
+            let dict = VariantDict::new(None);
+            dict.insert("id", &self.id);
+            dict.insert("name", &self.name);
+            dict.insert("description", &self.description);
+            if let Some(icon) = &self.icon {
+                dict.insert("icon", icon);
+            }
+            dict.into()
+        }
+    }
+
+    impl From<ResultMetas> for Variant {
+        fn from(value: ResultMetas) -> Self {
+            value.to_variant()
+        }
+    }
+
+    impl StaticVariantType for ResultMetas {
+        fn static_variant_type() -> Cow<'static, glib::VariantTy> {
+            VariantDict::static_variant_type()
         }
     }
 
@@ -288,9 +323,32 @@ mod search {
         scored.into_iter().map(|(_, uri)| uri).collect::<Vec<_>>()
     }
 
-    #[must_use]
-    pub fn name_from_uri(uri_or_path: &str) -> Option<&str> {
+    fn name_from_uri(uri_or_path: &str) -> Option<&str> {
         uri_or_path.split('/').filter(|seg| !seg.is_empty()).last()
+    }
+
+    /// Get the name and description for the given workspace URI or path.
+    pub fn name_and_description_of_uri(uri_or_path: &str) -> (String, String) {
+        match glib::Uri::parse(uri_or_path, UriFlags::NONE) {
+            Ok(parsed_uri) => {
+                let name = name_from_uri(parsed_uri.path().as_str())
+                    .unwrap_or(uri_or_path)
+                    .to_owned();
+                let description = match parsed_uri.scheme().as_str() {
+                    "file:" if parsed_uri.host().is_none() => parsed_uri.path().into(),
+                    _ => parsed_uri.to_string(),
+                };
+                (name, description)
+            }
+            Err(error) => {
+                glib::warn!("Failed to parse {uri_or_path} as URI: {error}");
+                let name = name_from_uri(uri_or_path)
+                    .unwrap_or(uri_or_path)
+                    .to_string();
+                let description = uri_or_path.to_string();
+                (name, description)
+            }
+        }
     }
 }
 
@@ -323,7 +381,6 @@ mod imp {
     use gio::prelude::*;
     use gio::subclass::prelude::*;
     use gio::IOErrorEnum;
-    use glib::{UriFlags, VariantDict};
 
     #[allow(clippy::wildcard_imports)]
     use super::searchprovider2::*;
@@ -339,34 +396,14 @@ mod imp {
         .unwrap()
     }
 
-    async fn get_result_metas(desktop_id: &'static str, uri: &str) -> VariantDict {
-        let metas = VariantDict::new(None);
-        metas.insert("id", uri);
-        match glib::Uri::parse(uri, UriFlags::NONE) {
-            Ok(parsed_uri) => {
-                metas.insert(
-                    "name",
-                    search::name_from_uri(parsed_uri.path().as_str()).unwrap_or(uri),
-                );
-                match parsed_uri.scheme().as_str() {
-                    "file:" if parsed_uri.host().is_none() => {
-                        metas.insert("description", parsed_uri.path().as_str());
-                    }
-                    _ => {
-                        metas.insert("description", parsed_uri.to_str().as_str());
-                    }
-                };
-            }
-            Err(error) => {
-                glib::warn!("Failed to parse {uri} as URI: {error}");
-                metas.insert("name", search::name_from_uri(uri).unwrap_or(uri));
-                metas.insert("description", uri);
-            }
+    async fn get_result_metas(desktop_id: &'static str, uri: &str) -> ResultMetas {
+        let (name, description) = search::name_and_description_of_uri(uri);
+        ResultMetas {
+            id: uri.to_string(),
+            name,
+            description,
+            icon: get_icon(desktop_id).await,
         }
-        if let Some(icon) = get_icon(desktop_id).await {
-            metas.insert("icon", icon);
-        }
-        metas
     }
 
     // Known providers, as pair of desktop ID and configuration directory.
