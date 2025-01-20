@@ -22,13 +22,16 @@
 
 use std::path::PathBuf;
 
-use futures_util::{select, FutureExt};
+use futures_util::FutureExt;
 use logcontrol_tracing::{PrettyLogControl1LayerFactory, TracingLogControl1};
 use logcontrol_zbus::ConnectionBuilderExt;
 use searchprovider::SearchProvider;
-use tokio::signal::{
-    ctrl_c,
-    unix::{signal, SignalKind},
+use tokio::{
+    signal::{
+        ctrl_c,
+        unix::{signal, SignalKind},
+    },
+    time::{Duration, Instant},
 };
 use tracing::{debug, error, info, instrument, Level};
 use tracing_subscriber::{layer::SubscriberExt, Registry};
@@ -546,6 +549,22 @@ impl CodeVariant {
     }
 }
 
+/// Return when `connection` was idle for the `idle_timeout` duration.
+async fn connection_idle_timeout(connection: &zbus::Connection, idle_timeout: Duration) {
+    let idle_timer = tokio::time::sleep(idle_timeout);
+    tokio::pin!(idle_timer);
+    loop {
+        tokio::select! {
+            () = connection.monitor_activity() => {
+                idle_timer.as_mut().reset(Instant::now() + idle_timeout);
+            }
+            () = &mut idle_timer => {
+                break;
+            }
+        }
+    }
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Setup env filter for convenient log control on console
@@ -593,22 +612,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
     info!("Connected to bus, serving search provider");
 
+    // Exit the service on Ctrl+C (i.e. keyboard interrupt on the local console),
+    // SIGTERM, i.e. from systemd, and when it's been idle for a while so
+    // that it doesn't keep running even if the user doesn't search anymore.
+    let idle_timeout = Duration::from_secs(300);
     let mut sigterm = signal(SignalKind::terminate())?;
-    select! {
+    tokio::select! {
+        () = connection_idle_timeout(&connection, idle_timeout) => {
+            info!("Idle timeout after {idle_timeout:?}");
+        }
         result = ctrl_c().fuse() => {
             if let Err(error) = result {
                 error!("Ctrl-C failed? {error}");
             } else {
-                info!("Interrupted");
+                info!("Received SIGINT");
             }
         }
         _ = sigterm.recv().fuse() => {
-            info!("Terminated");
+            info!("Received SIGTERM");
         }
     }
 
     info!("Closing DBus connection");
-    connection.graceful_shutdown().await?;
+    connection.graceful_shutdown().await;
 
     info!("Exiting");
     Ok(())
