@@ -26,10 +26,6 @@ url = "https://raw.githubusercontent.com/swsnr/rust-supply-chain/refs/heads/main
 criteria = "safe-to-run"
 notes = "Just a local service with little to no external exposure, so safe-to-run is enough"
 
-[[exemptions.addr2line]]
-version = "0.24.2"
-criteria = "safe-to-run"
-
 [[exemptions.async-channel]]
 version = "2.3.1"
 criteria = "safe-to-run"
@@ -54,10 +50,6 @@ criteria = "safe-to-run"
 version = "2.3.0"
 criteria = "safe-to-run"
 
-[[exemptions.async-recursion]]
-version = "1.1.1"
-criteria = "safe-to-run"
-
 [[exemptions.async-signal]]
 version = "0.2.10"
 criteria = "safe-to-run"
@@ -72,10 +64,6 @@ criteria = "safe-to-run"
 
 [[exemptions.bitflags]]
 version = "2.8.0"
-criteria = "safe-to-run"
-
-[[exemptions.block]]
-version = "0.1.6"
 criteria = "safe-to-run"
 
 [[exemptions.blocking]]
@@ -138,16 +126,8 @@ criteria = "safe-to-run"
 version = "0.22.5"
 criteria = "safe-to-run"
 
-[[exemptions.gimli]]
-version = "0.31.1"
-criteria = "safe-to-run"
-
 [[exemptions.hashlink]]
 version = "0.9.1"
-criteria = "safe-to-run"
-
-[[exemptions.hermit-abi]]
-version = "0.4.0"
 criteria = "safe-to-run"
 
 [[exemptions.icu_properties]]
@@ -156,10 +136,6 @@ criteria = "safe-to-run"
 
 [[exemptions.libc]]
 version = "0.2.169"
-criteria = "safe-to-run"
-
-[[exemptions.libredox]]
-version = "0.1.3"
 criteria = "safe-to-run"
 
 [[exemptions.libsqlite3-sys]]
@@ -182,28 +158,8 @@ criteria = "safe-to-run"
 version = "3.0.0"
 criteria = "safe-to-run"
 
-[[exemptions.miniz_oxide]]
-version = "0.8.3"
-criteria = "safe-to-run"
-
 [[exemptions.mio]]
 version = "1.0.3"
-criteria = "safe-to-run"
-
-[[exemptions.objc]]
-version = "0.2.7"
-criteria = "safe-to-run"
-
-[[exemptions.objc-foundation]]
-version = "0.1.1"
-criteria = "safe-to-run"
-
-[[exemptions.objc_id]]
-version = "0.1.1"
-criteria = "safe-to-run"
-
-[[exemptions.object]]
-version = "0.36.7"
 criteria = "safe-to-run"
 
 [[exemptions.once_cell]]
@@ -230,10 +186,6 @@ criteria = "safe-to-run"
 version = "3.2.0"
 criteria = "safe-to-run"
 
-[[exemptions.redox_users]]
-version = "0.4.6"
-criteria = "safe-to-run"
-
 [[exemptions.rusqlite]]
 version = "0.32.1"
 criteria = "safe-to-run"
@@ -244,10 +196,6 @@ criteria = "safe-to-run"
 
 [[exemptions.temp-dir]]
 version = "0.1.14"
-criteria = "safe-to-run"
-
-[[exemptions.tempfile]]
-version = "3.15.0"
 criteria = "safe-to-run"
 
 [[exemptions.textdistance]]
@@ -274,26 +222,10 @@ criteria = "safe-to-run"
 version = "0.3.19"
 criteria = "safe-to-run"
 
-[[exemptions.uds_windows]]
-version = "1.1.0"
-criteria = "safe-to-run"
-
-[[exemptions.winapi-i686-pc-windows-gnu]]
-version = "0.4.0"
-criteria = "safe-to-run"
-
-[[exemptions.winapi-x86_64-pc-windows-gnu]]
-version = "0.4.0"
-criteria = "safe-to-run"
-
 [[exemptions.xdg]]
 version = "2.5.2"
 criteria = "safe-to-run"
 
 [[exemptions.zerocopy]]
-version = "0.7.35"
-criteria = "safe-to-run"
-
-[[exemptions.zerocopy-derive]]
 version = "0.7.35"
 criteria = "safe-to-run"
