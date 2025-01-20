@@ -311,6 +311,10 @@ mod searchprovider {
     use std::io::{Error, ErrorKind};
 
     use futures_util::future::join_all;
+    use rand::{
+        distributions::{Alphanumeric, DistString},
+        thread_rng,
+    };
     use serde::Serialize;
     use tokio::{process::Command, sync::OnceCell};
     use tracing::{debug, info, instrument, Span};
@@ -388,14 +392,15 @@ mod searchprovider {
                 ErrorKind::NotFound,
                 format!("Application {} not found", self.code.app_id),
             ))?;
-            // TODO: Random scope name using the app id
+            let scope_name = format!(
+                "app-gnome-{}-{}.scope",
+                self.code.app_id.replace('-', "_"),
+                Alphanumeric.sample_string(&mut thread_rng(), 8)
+            );
+            info!("Launching {} in new scope {}", self.code.app_id, scope_name);
             Command::new("/usr/bin/systemd-run")
-                // .arg("--unit")
-                // .arg(format!(
-                //     "app-gnome-{}-{}",
-                //     self.code.app_id.replace('-', "_"),
-                //     "398725203"
-                // ))
+                .arg("--unit")
+                .arg(&scope_name)
                 .args(["--user", "--scope", "--same-dir", "/usr/bin/gio", "launch"])
                 .arg(desktop_entry.path().as_os_str())
                 .args(uri.as_slice())

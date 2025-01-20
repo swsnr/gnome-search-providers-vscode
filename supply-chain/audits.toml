@@ -57,6 +57,11 @@ who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "1.0.13 -> 1.0.14"
 
+[[audits.zerocopy-derive]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.7.32 -> 0.7.35"
+
 [[trusted.async-broadcast]]
 criteria = "safe-to-run"
 user-id = 6423 # Zeeshan Ali Khan (zeenix)

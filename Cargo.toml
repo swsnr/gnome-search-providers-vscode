@@ -28,6 +28,7 @@ percent-encoding = "2.3.1"
 logcontrol-zbus = "3.0.0"
 logcontrol-tracing = "0.2.0"
 configparser = "3.1.0"
+rand = "0.8.5"
 
 [package.metadata.release]
 pre-release-commit-message = "Release {{version}}"
