@@ -550,6 +550,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // to make sure the env filter takes precedence initially.
     let default_level = if env_filter.is_some() {
         Level::TRACE
+    } else if cfg!(debug_assertions) {
+        // In debug builds, e.g. local testing, log more by default
+        Level::DEBUG
     } else {
         Level::INFO
     };
