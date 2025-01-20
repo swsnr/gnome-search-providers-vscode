@@ -22,7 +22,6 @@
 
 use std::path::PathBuf;
 
-use freedesktop_desktop_entry::DesktopEntry;
 use futures_util::{select, FutureExt};
 use logcontrol_tracing::{PrettyLogControl1LayerFactory, TracingLogControl1};
 use logcontrol_zbus::ConnectionBuilderExt;
@@ -36,9 +35,12 @@ use tracing_subscriber::{layer::SubscriberExt, Registry};
 use zbus::conn::Builder;
 
 mod xdg {
-    use std::path::PathBuf;
+    use std::{
+        io::{Error, ErrorKind, Result},
+        path::{Path, PathBuf},
+    };
 
-    use freedesktop_desktop_entry::DesktopEntry;
+    use configparser::ini::Ini;
 
     fn user_home() -> PathBuf {
         std::env::var_os("HOME").unwrap().into()
@@ -63,18 +65,43 @@ mod xdg {
         }
     }
 
-    pub fn find_desktop_entry(app_id: &str) -> Option<DesktopEntry> {
-        let mut data_dirs = data_dirs();
-        let mut dirs = Vec::with_capacity(data_dirs.len() + 1);
-        dirs.push(data_home());
-        dirs.append(&mut data_dirs);
-        dirs.into_iter()
-            .map(|d| {
-                d.join("applications")
-                    .join(app_id)
-                    .with_extension("desktop")
-            })
-            .find_map(|file| DesktopEntry::from_path::<&str>(file, None).ok())
+    #[derive(Debug)]
+    pub struct DesktopEntry {
+        path: PathBuf,
+        icon: Option<String>,
+    }
+
+    impl DesktopEntry {
+        fn from_path(path: PathBuf) -> Result<DesktopEntry> {
+            let mut config = Ini::new();
+            config
+                .load(&path)
+                .map_err(|error| Error::new(ErrorKind::InvalidData, error))?;
+            let icon = config.get("Desktop Entry", "icon");
+            Ok(DesktopEntry { path, icon })
+        }
+
+        pub fn find(app_id: &str) -> Option<DesktopEntry> {
+            let mut data_dirs = data_dirs();
+            let mut dirs = Vec::with_capacity(data_dirs.len() + 1);
+            dirs.push(data_home());
+            dirs.append(&mut data_dirs);
+            dirs.into_iter()
+                .map(|d| {
+                    d.join("applications")
+                        .join(app_id)
+                        .with_extension("desktop")
+                })
+                .find_map(|file| DesktopEntry::from_path(file).ok())
+        }
+
+        pub fn icon(&self) -> Option<&str> {
+            self.icon.as_deref()
+        }
+
+        pub fn path(&self) -> &Path {
+            &self.path
+        }
     }
 }
 
@@ -278,7 +305,6 @@ mod search {
 mod searchprovider {
     use std::io::{Error, ErrorKind};
 
-    use freedesktop_desktop_entry::DesktopEntry;
     use futures_util::future::join_all;
     use serde::Serialize;
     use tokio::{process::Command, sync::OnceCell};
@@ -289,14 +315,14 @@ mod searchprovider {
         zvariant::{Array, OwnedValue, SerializeDict, Str, Type},
     };
 
-    use super::{search, workspaces, CodeVariant};
+    use super::{search, workspaces, xdg, CodeVariant};
 
     #[derive(Debug, Type, Serialize)]
     #[zvariant(signature = "(sv)")]
     struct SerializedIcon(&'static str, OwnedValue);
 
     impl SerializedIcon {
-        fn from_desktop_entry(entry: &DesktopEntry) -> Option<Self> {
+        fn from_desktop_entry(entry: &xdg::DesktopEntry) -> Option<Self> {
             let icon = entry.icon()?;
             let serialized = match Url::from_file_path(icon) {
                 Ok(url) => Self("file", OwnedValue::from(Str::from(url.as_ref()))),
@@ -322,7 +348,7 @@ mod searchprovider {
 
     pub struct SearchProvider {
         code: CodeVariant,
-        desktop_entry: OnceCell<Option<DesktopEntry<'static>>>,
+        desktop_entry: OnceCell<Option<xdg::DesktopEntry>>,
     }
 
     impl SearchProvider {
@@ -366,13 +392,13 @@ mod searchprovider {
                 //     "398725203"
                 // ))
                 .args(["--user", "--scope", "--same-dir", "/usr/bin/gio", "launch"])
-                .arg(desktop_entry.path.as_os_str())
+                .arg(desktop_entry.path().as_os_str())
                 .args(uri.as_slice())
                 .spawn()?;
             Ok(())
         }
 
-        async fn desktop_entry(&self) -> Option<&DesktopEntry> {
+        async fn desktop_entry(&self) -> Option<&xdg::DesktopEntry> {
             self.desktop_entry
                 .get_or_init(|| async {
                     let code = self.code;
@@ -394,7 +420,7 @@ mod searchprovider {
         async fn get_icon(&self) -> Option<SerializedIcon> {
             self.desktop_entry()
                 .await
-                .and_then(|entry| SerializedIcon::from_desktop_entry(entry))
+                .and_then(SerializedIcon::from_desktop_entry)
         }
 
         #[instrument(skip(self))]
@@ -500,11 +526,11 @@ impl CodeVariant {
     }
 
     #[instrument(skip(self), fields(app_id = self.app_id))]
-    fn find_desktop_entry(&self) -> Option<DesktopEntry<'static>> {
-        xdg::find_desktop_entry(self.app_id).inspect(|desktop_entry| {
+    fn find_desktop_entry(&self) -> Option<xdg::DesktopEntry> {
+        xdg::DesktopEntry::find(self.app_id).inspect(|desktop_entry| {
             debug!(
                 "Found desktop entry {} for {}",
-                desktop_entry.path.display(),
+                desktop_entry.path().display(),
                 self.app_id,
             );
         })

@@ -70,20 +70,8 @@ criteria = "safe-to-run"
 version = "1.6.1"
 criteria = "safe-to-run"
 
-[[exemptions.cc]]
-version = "1.2.10"
-criteria = "safe-to-run"
-
 [[exemptions.concurrent-queue]]
 version = "2.5.0"
-criteria = "safe-to-run"
-
-[[exemptions.dirs]]
-version = "5.0.1"
-criteria = "safe-to-run"
-
-[[exemptions.dirs-sys]]
-version = "0.4.1"
 criteria = "safe-to-run"
 
 [[exemptions.enumflags2]]
@@ -110,20 +98,8 @@ criteria = "safe-to-run"
 version = "2.3.0"
 criteria = "safe-to-run"
 
-[[exemptions.freedesktop-desktop-entry]]
-version = "0.7.5"
-criteria = "safe-to-run"
-
 [[exemptions.futures-lite]]
 version = "2.6.0"
-criteria = "safe-to-run"
-
-[[exemptions.gettext-rs]]
-version = "0.7.2"
-criteria = "safe-to-run"
-
-[[exemptions.gettext-sys]]
-version = "0.22.5"
 criteria = "safe-to-run"
 
 [[exemptions.hashlink]]
@@ -140,10 +116,6 @@ criteria = "safe-to-run"
 
 [[exemptions.libsqlite3-sys]]
 version = "0.30.1"
-criteria = "safe-to-run"
-
-[[exemptions.locale_config]]
-version = "0.3.0"
 criteria = "safe-to-run"
 
 [[exemptions.logcontrol]]
@@ -164,10 +136,6 @@ criteria = "safe-to-run"
 
 [[exemptions.once_cell]]
 version = "1.20.1"
-criteria = "safe-to-run"
-
-[[exemptions.option-ext]]
-version = "0.2.0"
 criteria = "safe-to-run"
 
 [[exemptions.ordered-stream]]
@@ -194,14 +162,6 @@ criteria = "safe-to-run"
 version = "0.1.7"
 criteria = "safe-to-run"
 
-[[exemptions.temp-dir]]
-version = "0.1.14"
-criteria = "safe-to-run"
-
-[[exemptions.textdistance]]
-version = "1.1.1"
-criteria = "safe-to-run"
-
 [[exemptions.tracing]]
 version = "0.1.41"
 criteria = "safe-to-run"
@@ -220,10 +180,6 @@ criteria = "safe-to-run"
 
 [[exemptions.tracing-subscriber]]
 version = "0.3.19"
-criteria = "safe-to-run"
-
-[[exemptions.xdg]]
-version = "2.5.2"
 criteria = "safe-to-run"
 
 [[exemptions.zerocopy]]
