@@ -24,6 +24,7 @@ tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", default-features = false, features = ["std", "ansi", "registry"] }
 futures-util = "0.3.31"
 url = "2.5.4"
+percent-encoding = "2.3.1"
 logcontrol-zbus = "3.0.0"
 logcontrol-tracing = "0.2.0"
 configparser = "3.1.0"

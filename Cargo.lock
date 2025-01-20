@@ -451,6 +451,7 @@ dependencies = [
  "futures-util",
  "logcontrol-tracing",
  "logcontrol-zbus",
+ "percent-encoding",
  "rusqlite",
  "serde",
  "serde_json",

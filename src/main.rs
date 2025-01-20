@@ -204,9 +204,10 @@ mod workspaces {
 }
 
 mod search {
-    use std::fmt::Debug;
+    use std::{borrow::Cow, fmt::Debug};
 
-    use tracing::{instrument, trace, warn};
+    use percent_encoding::percent_decode_str;
+    use tracing::{trace, warn};
     use url::Url;
 
     /// Calculate how well `uri` matches all of the given `terms`.
@@ -250,10 +251,8 @@ mod search {
         let mut scored = uris
             .into_iter()
             .filter_map(|uri| {
-                let decoded_uri = Url::parse(uri.as_ref()).ok().map(|s| s.to_string());
-                let scored_uri = decoded_uri
-                    .as_ref()
-                    .map_or_else(|| uri.as_ref(), |s| s.as_str());
+                let decoded_uri = percent_decode_str(uri.as_ref()).decode_utf8().ok();
+                let scored_uri = decoded_uri.as_deref().unwrap_or_else(|| uri.as_ref());
                 let score = score_uri(scored_uri, terms);
                 trace!("URI {scored_uri} scores {score} against {terms:?}");
                 if score <= 0.0 {
@@ -277,25 +276,31 @@ mod search {
     }
 
     /// Get the name and description for the given workspace URI or path.
-    #[instrument]
     pub fn name_and_description_of_uri(uri_or_path: &str) -> (String, String) {
         match Url::parse(uri_or_path) {
             Ok(parsed_uri) => {
-                let name = name_from_uri(parsed_uri.path())
-                    .unwrap_or(uri_or_path)
-                    .to_owned();
+                let decoded_path = percent_decode_str(parsed_uri.path()).decode_utf8().ok();
+                let name = decoded_path
+                    .as_deref()
+                    .and_then(|path| name_from_uri(path).map(ToOwned::to_owned))
+                    .unwrap_or_else(|| uri_or_path.to_string());
                 let description = match parsed_uri.scheme() {
-                    "file:" if parsed_uri.host().is_none() => parsed_uri.path().into(),
-                    _ => parsed_uri.to_string(),
+                    "file:" if parsed_uri.host().is_none() => {
+                        decoded_path.map_or_else(|| parsed_uri.path().to_string(), Cow::into_owned)
+                    }
+                    _ => percent_decode_str(uri_or_path)
+                        .decode_utf8()
+                        .ok()
+                        .map_or_else(|| uri_or_path.to_string(), Cow::into_owned),
                 };
                 (name, description)
             }
             Err(error) => {
                 warn!("Failed to parse {uri_or_path} as URI: {error}");
-                let name = name_from_uri(uri_or_path)
-                    .unwrap_or(uri_or_path)
-                    .to_string();
-                let description = uri_or_path.to_string();
+                let decoded = percent_decode_str(uri_or_path).decode_utf8().ok();
+                let pretty_uri = decoded.as_deref().unwrap_or(uri_or_path);
+                let name = name_from_uri(pretty_uri).unwrap_or(pretty_uri).to_string();
+                let description = pretty_uri.to_string();
                 (name, description)
             }
         }
