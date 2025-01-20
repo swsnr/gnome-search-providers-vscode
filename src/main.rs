@@ -285,7 +285,7 @@ mod search {
                     .and_then(|path| name_from_uri(path).map(ToOwned::to_owned))
                     .unwrap_or_else(|| uri_or_path.to_string());
                 let description = match parsed_uri.scheme() {
-                    "file:" if parsed_uri.host().is_none() => {
+                    "file" if parsed_uri.host().is_none() => {
                         decoded_path.map_or_else(|| parsed_uri.path().to_string(), Cow::into_owned)
                     }
                     _ => percent_decode_str(uri_or_path)
