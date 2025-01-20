@@ -32,7 +32,6 @@ use tokio::signal::{
 };
 use tracing::{debug, error, info, instrument, Level};
 use tracing_subscriber::{layer::SubscriberExt, Registry};
-use zbus::conn::Builder;
 
 mod xdg {
     use std::{
@@ -566,7 +565,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let subscriber = Registry::default().with(env_filter).with(control_layer);
     tracing::subscriber::set_global_default(subscriber).unwrap();
 
-    let connection = Builder::session()?
+    let connection = zbus::connection::Builder::session()?
         .name("de.swsnr.VSCodeSearchProvider")?
         .serve_log_control(logcontrol_zbus::LogControl1::new(control))?
         .serve_at(
@@ -609,7 +608,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     info!("Closing DBus connection");
-    connection.close().await?;
+    connection.graceful_shutdown().await?;
 
     info!("Exiting");
     Ok(())
