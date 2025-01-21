@@ -11,8 +11,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/gtk-rs/gtk4-rs/gtk4:latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -40,6 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CARGO_VET_VERSION: 0.10.0
+      # Only consider Linux dependencies, as that's all I care for.
+      # Seems to be unofficial, see https://github.com/mozilla/cargo-vet/issues/579, but works
+      CARGO_BUILD_TARGET: x86_64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable

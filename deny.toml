@@ -1,5 +1,6 @@
 [graph]
-targets = []
+# Only check Linux as that's all we care for
+targets = ["x86_64-unknown-linux-gnu"]
 
 [advisories]
 version = 2
@@ -13,6 +14,3 @@ allow = ["MIT", "Apache-2.0", "Apache-2.0 WITH LLVM-exception", "MPL-2.0", "Unic
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
-
-[sources.allow-org]
-github = ["swsnr"]
