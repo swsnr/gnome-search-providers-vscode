@@ -115,6 +115,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tokio::select! {
         () = connection_idle_timeout(&connection, idle_timeout) => {
             info!("Idle timeout after {idle_timeout:?}");
+            // We know that there's not activity on the connection at this point
+            // so we forcibly close it fast.
+            connection.close().await?;
         }
         result = ctrl_c().fuse() => {
             if let Err(error) = result {
@@ -122,14 +125,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 info!("Received SIGINT");
             }
+            connection.graceful_shutdown().await;
         }
         _ = sigterm.recv().fuse() => {
             info!("Received SIGTERM");
+            connection.graceful_shutdown().await;
         }
     }
-
-    info!("Closing DBus connection");
-    connection.graceful_shutdown().await;
 
     info!("Exiting");
     Ok(())
