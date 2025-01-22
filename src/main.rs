@@ -74,6 +74,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let subscriber = Registry::default().with(env_filter).with(control_layer);
     tracing::subscriber::set_global_default(subscriber).unwrap();
 
+    tracing::info!(
+        "Starting VSCode search providers for GNOME version {}",
+        env!("CARGO_PKG_VERSION")
+    );
+
     let connection = zbus::connection::Builder::session()?
         .name("de.swsnr.VSCodeSearchProvider")?
         .serve_log_control(logcontrol_zbus::LogControl1::new(control))?
