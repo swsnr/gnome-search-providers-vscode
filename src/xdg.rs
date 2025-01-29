@@ -51,11 +51,9 @@ impl DesktopEntry {
     }
 
     pub fn find(app_id: &str) -> Option<DesktopEntry> {
-        let mut data_dirs = data_dirs();
-        let mut dirs = Vec::with_capacity(data_dirs.len() + 1);
-        dirs.push(data_home());
-        dirs.append(&mut data_dirs);
-        dirs.into_iter()
+        let data_dirs = data_dirs();
+        std::iter::once(&data_home())
+            .chain(&data_dirs)
             .map(|d| {
                 d.join("applications")
                     .join(app_id)
