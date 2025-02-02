@@ -32,6 +32,24 @@ jobs:
           name: vendor.tar.zstd
           path: vendor.tar.zstd
 
+  git-archive:
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: env LC_ALL=C TZ=UTC0 git archive --format tar --prefix 'gnome-search-providers-vscode-${{ github.ref_name }}/' --output 'gnome-search-providers-vscode-${{ github.ref_name }}.tar' "${{ github.sha }}"
+      - run: zstd 'gnome-search-providers-vscode-${{ github.ref_name }}.tar'
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'gnome-search-providers-vscode-${{ github.ref_name }}.tar.zst'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gnome-search-providers-vscode-${{ github.ref_name }}.tar.zst
+          path: gnome-search-providers-vscode-${{ github.ref_name }}.tar.zst
+
   create-release:
     runs-on: ubuntu-latest
     needs: [vendor-dependencies]
