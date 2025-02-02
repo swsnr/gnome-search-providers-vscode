@@ -36,3 +36,4 @@ tag-prefix = ""
 tag-message = "Version {{tag_name}}"
 publish = false
 verify = false
+push = false
