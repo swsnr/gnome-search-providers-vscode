@@ -19,6 +19,7 @@
     clippy::let_underscore_untyped,
 )]
 #![allow(clippy::used_underscore_binding)]
+#![forbid(unsafe_code)]
 
 use futures_util::FutureExt;
 use logcontrol_tracing::{PrettyLogControl1LayerFactory, TracingLogControl1};
