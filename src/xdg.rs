@@ -29,7 +29,7 @@ pub fn data_home() -> PathBuf {
 /// Return `XDG_DATA_DIRS`.
 pub fn data_dirs() -> Vec<PathBuf> {
     match std::env::var_os("XDG_DATA_DIRS") {
-        Some(dirs) => std::env::split_paths(&dirs).map(Into::into).collect(),
+        Some(dirs) => std::env::split_paths(&dirs).collect(),
         None => vec!["/usr/local/share/".into(), "/usr/share/".into()],
     }
 }
