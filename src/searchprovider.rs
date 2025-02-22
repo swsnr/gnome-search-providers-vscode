@@ -16,7 +16,7 @@ use rand::{
 };
 use serde::Serialize;
 use tokio::{process::Command, sync::OnceCell};
-use tracing::{debug, info, instrument, Span};
+use tracing::{Span, debug, info, instrument};
 use url::Url;
 use zbus::{
     interface,

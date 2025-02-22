@@ -28,12 +28,12 @@ use searchprovider::{CodeVariant, SearchProvider};
 use tokio::{
     signal::{
         ctrl_c,
-        unix::{signal, SignalKind},
+        unix::{SignalKind, signal},
     },
     time::{Duration, Instant},
 };
-use tracing::{error, info, Level};
-use tracing_subscriber::{layer::SubscriberExt, Registry};
+use tracing::{Level, error, info};
+use tracing_subscriber::{Registry, layer::SubscriberExt};
 
 mod search;
 mod searchprovider;
