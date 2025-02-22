@@ -26,10 +26,6 @@ url = "https://raw.githubusercontent.com/swsnr/rust-supply-chain/refs/heads/main
 criteria = "safe-to-run"
 notes = "Just a local service with little to no external exposure, so safe-to-run is enough"
 
-[[exemptions.async-channel]]
-version = "2.3.1"
-criteria = "safe-to-run"
-
 [[exemptions.async-executor]]
 version = "1.13.1"
 criteria = "safe-to-run"
@@ -60,10 +56,6 @@ criteria = "safe-to-run"
 
 [[exemptions.atomic-waker]]
 version = "1.1.2"
-criteria = "safe-to-run"
-
-[[exemptions.bitflags]]
-version = "2.8.0"
 criteria = "safe-to-run"
 
 [[exemptions.blocking]]
@@ -106,28 +98,12 @@ criteria = "safe-to-run"
 version = "0.9.1"
 criteria = "safe-to-run"
 
-[[exemptions.icu_properties]]
-version = "1.5.1"
-criteria = "safe-to-run"
-
 [[exemptions.libc]]
 version = "0.2.169"
 criteria = "safe-to-run"
 
 [[exemptions.libsqlite3-sys]]
 version = "0.30.1"
-criteria = "safe-to-run"
-
-[[exemptions.logcontrol]]
-version = "1.0.1"
-criteria = "safe-to-run"
-
-[[exemptions.logcontrol-tracing]]
-version = "0.2.0"
-criteria = "safe-to-run"
-
-[[exemptions.logcontrol-zbus]]
-version = "3.0.0"
 criteria = "safe-to-run"
 
 [[exemptions.mio]]
@@ -148,10 +124,6 @@ criteria = "safe-to-run"
 
 [[exemptions.polling]]
 version = "3.7.4"
-criteria = "safe-to-run"
-
-[[exemptions.proc-macro-crate]]
-version = "3.2.0"
 criteria = "safe-to-run"
 
 [[exemptions.rusqlite]]

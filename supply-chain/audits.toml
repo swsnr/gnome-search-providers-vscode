@@ -280,6 +280,24 @@ user-id = 6825 # Dan Gohman (sunfishcode)
 start = "2021-06-12"
 end = "2026-01-19"
 
+[[trusted.logcontrol]]
+criteria = "safe-to-run"
+user-id = 4372 # Sebastian Wiesner (swsnr)
+start = "2023-09-30"
+end = "2026-02-22"
+
+[[trusted.logcontrol-tracing]]
+criteria = "safe-to-run"
+user-id = 4372 # Sebastian Wiesner (swsnr)
+start = "2023-09-30"
+end = "2026-02-22"
+
+[[trusted.logcontrol-zbus]]
+criteria = "safe-to-run"
+user-id = 4372 # Sebastian Wiesner (swsnr)
+start = "2023-09-30"
+end = "2026-02-22"
+
 [[trusted.memchr]]
 criteria = "safe-to-run"
 user-id = 189 # Andrew Gallant (BurntSushi)
