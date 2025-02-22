@@ -35,6 +35,8 @@ jobs:
       - run: cargo test --locked --features rusqlite/bundled
       - run: cargo fmt -- --check
       - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          rust-version: stable
 
   # See https://mozilla.github.io/cargo-vet/configuring-ci.html
   cargo-vet:
