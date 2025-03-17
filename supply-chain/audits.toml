@@ -11,6 +11,16 @@ who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "0.17.0 -> 0.17.2"
 
+[[audits.foldhash]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.1.4 -> 0.1.5"
+
+[[audits.libc]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.2.170 -> 0.2.171"
+
 [[audits.log]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
@@ -20,6 +30,11 @@ delta = "0.4.22 -> 0.4.24"
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "0.4.24 -> 0.4.25"
+
+[[audits.once_cell]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "1.20.3 -> 1.21.1"
 
 [[audits.pin-project-lite]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
@@ -46,6 +61,16 @@ delta = "1.0.92 -> 1.0.93"
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "1.0.37 -> 1.0.38"
+
+[[audits.rand_chacha]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.3.1 -> 0.9.0"
+
+[[audits.rand_core]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.6.4 -> 0.9.3"
 
 [[audits.serde_json]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
@@ -270,9 +295,15 @@ notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.libc]]
 criteria = "safe-to-run"
-user-id = 51017
+user-id = 51017 # Yuki Okushi (JohnTitor)
 start = "2020-03-17"
 end = "2026-01-19"
+
+[[trusted.libsqlite3-sys]]
+criteria = "safe-to-run"
+user-id = 5062 # gwenn (gwenn)
+start = "2019-03-10"
+end = "2026-03-17"
 
 [[trusted.linux-raw-sys]]
 criteria = "safe-to-run"
@@ -336,6 +367,12 @@ user-id = 189 # Andrew Gallant (BurntSushi)
 start = "2019-03-30"
 end = "2025-10-31"
 notes = "swsnr trusts BurntSushi"
+
+[[trusted.rusqlite]]
+criteria = "safe-to-run"
+user-id = 5062 # gwenn (gwenn)
+start = "2019-03-10"
+end = "2026-03-17"
 
 [[trusted.rustix]]
 criteria = "safe-to-run"
