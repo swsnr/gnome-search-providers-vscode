@@ -15,7 +15,7 @@ edition = "2024"
 publish = false
 
 [dependencies]
-rusqlite = { version = "0.32.1", features = ["serde_json"] }
+rusqlite = { version = "0.34.0", features = ["serde_json"] }
 serde = { version = "1.0.216", features = ["derive"] }
 serde_json = { version = "1.0.133" }
 tokio = { version = "1.43.0", features = ["rt", "macros", "process", "signal", "sync", "time"] }
@@ -28,7 +28,7 @@ percent-encoding = "2.3.1"
 logcontrol-zbus = "3.0.0"
 logcontrol-tracing = "0.2.0"
 configparser = "3.1.0"
-rand = "0.8.5"
+rand = "0.9.0"
 
 [package.metadata.release]
 pre-release-commit-message = "Release {{version}}"
