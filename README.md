@@ -5,6 +5,7 @@ Add recent workspaces of various VSCode variants to Gnome search.
 - Code OSS (Arch Linux)
 - VSCodium
 - Office Visual Studio Code packages
+- Visual Studio Code Insiders
 
 Under the hood this is a small systemd user service which implements the [search provider][1] DBus API and exposes recent workspaces from VSCode.
 

@@ -104,6 +104,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 config_directory_name: "VSCodium",
             }),
         )?
+        .serve_at(
+            "/de/swsnr/VSCodeSearchProvider/code_insiders",
+            SearchProvider::new(CodeVariant {
+                app_id: "code-insiders",
+                config_directory_name: "Code - Insiders",
+            }),
+        )?
         .build()
         .await?;
     info!("Connected to bus, serving search provider");
