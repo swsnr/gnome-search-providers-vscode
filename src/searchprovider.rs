@@ -10,7 +10,6 @@ use std::{
 };
 
 use futures_util::future::join_all;
-use rand::Rng;
 use serde::Serialize;
 use tokio::{process::Command, sync::OnceCell};
 use tracing::{Span, debug, info, instrument};
@@ -91,7 +90,7 @@ impl SearchProvider {
         let scope_name = format!(
             "app-gnome-{}-{}.scope",
             self.code.app_id.replace('-', "_"),
-            rand::rng().random::<u16>()
+            fastrand::u16(..)
         );
         info!("Launching {} in new scope {}", self.code.app_id, scope_name);
         Command::new("/usr/bin/systemd-run")

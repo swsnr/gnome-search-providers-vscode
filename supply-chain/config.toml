@@ -70,10 +70,6 @@ criteria = "safe-to-run"
 version = "0.7.11"
 criteria = "safe-to-run"
 
-[[exemptions.enumflags2_derive]]
-version = "0.7.11"
-criteria = "safe-to-run"
-
 [[exemptions.event-listener]]
 version = "5.4.0"
 criteria = "safe-to-run"
@@ -84,10 +80,6 @@ criteria = "safe-to-run"
 
 [[exemptions.fallible-streaming-iterator]]
 version = "0.1.9"
-criteria = "safe-to-run"
-
-[[exemptions.fastrand]]
-version = "2.3.0"
 criteria = "safe-to-run"
 
 [[exemptions.futures-lite]]
@@ -118,10 +110,6 @@ criteria = "safe-to-run"
 version = "3.7.4"
 criteria = "safe-to-run"
 
-[[exemptions.rand]]
-version = "0.9.0"
-criteria = "safe-to-run"
-
 [[exemptions.sharded-slab]]
 version = "0.1.7"
 criteria = "safe-to-run"
@@ -144,8 +132,4 @@ criteria = "safe-to-run"
 
 [[exemptions.tracing-subscriber]]
 version = "0.3.19"
-criteria = "safe-to-run"
-
-[[exemptions.zerocopy]]
-version = "0.8.23"
 criteria = "safe-to-run"
