@@ -8,6 +8,13 @@ user-id = 6423
 user-login = "zeenix"
 user-name = "Zeeshan Ali Khan"
 
+[[publisher.async-fs]]
+version = "1.6.0"
+when = "2022-08-17"
+user-id = 33035
+user-login = "taiki-e"
+user-name = "Taiki Endo"
+
 [[publisher.async-trait]]
 version = "0.1.88"
 when = "2025-03-15"
@@ -15,9 +22,23 @@ user-id = 3618
 user-login = "dtolnay"
 user-name = "David Tolnay"
 
+[[publisher.atomic-waker]]
+version = "1.1.0"
+when = "2023-01-15"
+user-id = 33035
+user-login = "taiki-e"
+user-name = "Taiki Endo"
+
 [[publisher.autocfg]]
 version = "1.4.0"
 when = "2024-09-27"
+user-id = 539
+user-login = "cuviper"
+user-name = "Josh Stone"
+
+[[publisher.backtrace]]
+version = "0.3.74"
+when = "2024-09-08"
 user-id = 539
 user-login = "cuviper"
 user-name = "Josh Stone"
@@ -30,8 +51,8 @@ user-login = "zeenix"
 user-name = "Zeeshan Ali Khan"
 
 [[publisher.errno]]
-version = "0.3.9"
-when = "2024-05-08"
+version = "0.3.11"
+when = "2025-04-04"
 user-id = 6825
 user-login = "sunfishcode"
 user-name = "Dan Gohman"
@@ -44,8 +65,8 @@ user-login = "Amanieu"
 user-name = "Amanieu d'Antras"
 
 [[publisher.indexmap]]
-version = "2.8.0"
-when = "2025-03-10"
+version = "2.9.0"
+when = "2025-04-04"
 user-id = 539
 user-login = "cuviper"
 user-name = "Josh Stone"
@@ -67,6 +88,13 @@ user-name = "gwenn"
 [[publisher.linux-raw-sys]]
 version = "0.4.15"
 when = "2025-01-08"
+user-id = 6825
+user-login = "sunfishcode"
+user-name = "Dan Gohman"
+
+[[publisher.linux-raw-sys]]
+version = "0.9.4"
+when = "2025-04-09"
 user-id = 6825
 user-login = "sunfishcode"
 user-name = "Dan Gohman"
@@ -127,6 +155,13 @@ user-id = 6825
 user-login = "sunfishcode"
 user-name = "Dan Gohman"
 
+[[publisher.rustix]]
+version = "1.0.5"
+when = "2025-04-01"
+user-id = 6825
+user-login = "sunfishcode"
+user-name = "Dan Gohman"
+
 [[publisher.ryu]]
 version = "1.0.20"
 when = "2025-03-04"
@@ -170,8 +205,8 @@ user-login = "Darksonn"
 user-name = "Alice Ryhl"
 
 [[publisher.smallvec]]
-version = "1.14.0"
-when = "2025-02-15"
+version = "1.15.0"
+when = "2025-04-05"
 user-id = 2017
 user-login = "mbrubeck"
 user-name = "Matt Brubeck"
@@ -211,12 +246,116 @@ user-id = 6743
 user-login = "epage"
 user-name = "Ed Page"
 
+[[publisher.valuable]]
+version = "0.1.1"
+when = "2025-01-17"
+user-id = 33035
+user-login = "taiki-e"
+user-name = "Taiki Endo"
+
+[[publisher.wasi]]
+version = "0.11.0+wasi-snapshot-preview1"
+when = "2022-01-19"
+user-id = 1
+user-login = "alexcrichton"
+user-name = "Alex Crichton"
+
+[[publisher.wasi]]
+version = "0.14.2+wasi-0.2.4"
+when = "2025-02-28"
+user-id = 1
+user-login = "alexcrichton"
+user-name = "Alex Crichton"
+
+[[publisher.windows-sys]]
+version = "0.52.0"
+when = "2023-11-15"
+user-id = 64539
+user-login = "kennykerr"
+user-name = "Kenny Kerr"
+
+[[publisher.windows-sys]]
+version = "0.59.0"
+when = "2024-07-30"
+user-id = 64539
+user-login = "kennykerr"
+user-name = "Kenny Kerr"
+
+[[publisher.windows-targets]]
+version = "0.52.6"
+when = "2024-07-03"
+user-id = 64539
+user-login = "kennykerr"
+user-name = "Kenny Kerr"
+
+[[publisher.windows_aarch64_gnullvm]]
+version = "0.52.6"
+when = "2024-07-03"
+user-id = 64539
+user-login = "kennykerr"
+user-name = "Kenny Kerr"
+
+[[publisher.windows_aarch64_msvc]]
+version = "0.52.6"
+when = "2024-07-03"
+user-id = 64539
+user-login = "kennykerr"
+user-name = "Kenny Kerr"
+
+[[publisher.windows_i686_gnu]]
+version = "0.52.6"
+when = "2024-07-03"
+user-id = 64539
+user-login = "kennykerr"
+user-name = "Kenny Kerr"
+
+[[publisher.windows_i686_gnullvm]]
+version = "0.52.6"
+when = "2024-07-03"
+user-id = 64539
+user-login = "kennykerr"
+user-name = "Kenny Kerr"
+
+[[publisher.windows_i686_msvc]]
+version = "0.52.6"
+when = "2024-07-03"
+user-id = 64539
+user-login = "kennykerr"
+user-name = "Kenny Kerr"
+
+[[publisher.windows_x86_64_gnu]]
+version = "0.52.6"
+when = "2024-07-03"
+user-id = 64539
+user-login = "kennykerr"
+user-name = "Kenny Kerr"
+
+[[publisher.windows_x86_64_gnullvm]]
+version = "0.52.6"
+when = "2024-07-03"
+user-id = 64539
+user-login = "kennykerr"
+user-name = "Kenny Kerr"
+
+[[publisher.windows_x86_64_msvc]]
+version = "0.52.6"
+when = "2024-07-03"
+user-id = 64539
+user-login = "kennykerr"
+user-name = "Kenny Kerr"
+
 [[publisher.winnow]]
-version = "0.7.4"
-when = "2025-03-12"
+version = "0.7.6"
+when = "2025-04-07"
 user-id = 6743
 user-login = "epage"
 user-name = "Ed Page"
+
+[[publisher.wit-bindgen-rt]]
+version = "0.39.0"
+when = "2025-02-05"
+user-id = 73222
+user-login = "wasmtime-publish"
 
 [[publisher.xdg-home]]
 version = "1.3.0"
@@ -267,10 +406,23 @@ user-id = 6423
 user-login = "zeenix"
 user-name = "Zeeshan Ali Khan"
 
-[[audits.bytecode-alliance.audits.errno]]
-who = "Dan Gohman <dev@sunfishcode.online>"
+[[audits.bytecode-alliance.wildcard-audits.wit-bindgen-rt]]
+who = "Alex Crichton <alex@alexcrichton.com>"
 criteria = "safe-to-deploy"
-delta = "0.3.9 -> 0.3.10"
+user-id = 73222 # wasmtime-publish
+start = "2023-01-01"
+end = "2025-05-08"
+notes = """
+The Bytecode Alliance uses the `wasmtime-publish` crates.io account to automate
+publication of this crate from CI. This repository requires all PRs are reviewed
+by a Bytecode Alliance maintainer and it owned by the Bytecode Alliance itself.
+"""
+
+[[audits.bytecode-alliance.audits.adler2]]
+who = "Alex Crichton <alex@alexcrichton.com>"
+criteria = "safe-to-deploy"
+version = "2.0.0"
+notes = "Fork of the original `adler` crate, zero unsfae code, works in `no_std`, does what it says on th tin."
 
 [[audits.bytecode-alliance.audits.fastrand]]
 who = "Alex Crichton <alex@alexcrichton.com>"
@@ -355,6 +507,17 @@ who = "Alex Crichton <alex@alexcrichton.com>"
 criteria = "safe-to-deploy"
 delta = "0.2.13 -> 0.2.14"
 notes = "No substantive changes in this update"
+
+[[audits.bytecode-alliance.audits.rustc-demangle]]
+who = "Alex Crichton <alex@alexcrichton.com>"
+criteria = "safe-to-deploy"
+version = "0.1.21"
+notes = "I am the author of this crate."
+
+[[audits.bytecode-alliance.audits.rustc-demangle]]
+who = "Alex Crichton <alex@alexcrichton.com>"
+criteria = "safe-to-deploy"
+delta = "0.1.21 -> 0.1.24"
 
 [[audits.bytecode-alliance.audits.signal-hook-registry]]
 who = "Pat Hickey <phickey@fastly.com>"
@@ -767,6 +930,12 @@ criteria = "safe-to-run"
 delta = "0.27.1 -> 0.28.0"
 aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
 
+[[audits.google.audits.once_cell]]
+who = "Ying Hsu <yinghsu@chromium.org>"
+criteria = "safe-to-run"
+version = "1.19.0"
+aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
+
 [[audits.google.audits.percent-encoding]]
 who = "George Burgess IV <gbiv@google.com>"
 criteria = "safe-to-run"
@@ -995,6 +1164,17 @@ criteria = "safe-to-run"
 version = "1.0.4"
 aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
 
+[[audits.google.audits.winapi]]
+who = "danakj@chromium.org"
+criteria = "safe-to-run"
+version = "0.3.9"
+notes = """
+Reviewed in https://crrev.com/c/5171063
+
+Previously reviewed during security review and the audit is grandparented in.
+"""
+aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
+
 [[audits.google.audits.write16]]
 who = "George Burgess IV <gbiv@google.com>"
 criteria = "safe-to-run"
@@ -1181,14 +1361,13 @@ aggregated-from = "https://hg.mozilla.org/mozilla-central/raw-file/tip/supply-ch
 [[audits.mozilla.audits.once_cell]]
 who = "Erich Gubler <erichdongubler@gmail.com>"
 criteria = "safe-to-deploy"
-delta = "1.20.1 -> 1.20.2"
-notes = "This update works around a Cargo bug that forces the addition of `portable-atomic` into a lockfile, which we have never needed to use."
+delta = "1.20.2 -> 1.20.3"
 aggregated-from = "https://hg.mozilla.org/mozilla-central/raw-file/tip/supply-chain/audits.toml"
 
 [[audits.mozilla.audits.once_cell]]
 who = "Erich Gubler <erichdongubler@gmail.com>"
 criteria = "safe-to-deploy"
-delta = "1.20.2 -> 1.20.3"
+delta = "1.21.1 -> 1.21.3"
 aggregated-from = "https://hg.mozilla.org/mozilla-central/raw-file/tip/supply-chain/audits.toml"
 
 [[audits.mozilla.audits.socket2]]
@@ -1284,6 +1463,13 @@ delta = "0.5.2 -> 0.5.3"
 notes = "Only exports a new feature and slightly changes some type signatures."
 aggregated-from = "https://raw.githubusercontent.com/swsnr/turnon/refs/heads/main/supply-chain/audits.toml"
 
+[[audits.swsnr.audits.event-listener-strategy]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-deploy"
+delta = "0.5.3 -> 0.5.4"
+notes = "No actual code change, just a new feature to expose a transitive dependency."
+aggregated-from = "https://raw.githubusercontent.com/swsnr/turnon/refs/heads/main/supply-chain/audits.toml"
+
 [[audits.swsnr.audits.fastrand]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-deploy"
@@ -1337,3 +1523,15 @@ criteria = "safe-to-run"
 delta = "0.5.7 -> 0.5.8"
 notes = "Only straight-forward wrappers around underlying C/syscall APIs; looks correct, but I didn't audit use of unsafe and correct use of these unsafe APIs."
 aggregated-from = "https://raw.githubusercontent.com/swsnr/turnon/refs/heads/main/supply-chain/audits.toml"
+
+[[audits.swsnr.audits.socket2]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.5.8 -> 0.5.9"
+aggregated-from = "https://raw.githubusercontent.com/swsnr/darklightd/refs/heads/main/supply-chain/audits.toml"
+
+[[audits.swsnr.audits.tokio]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "1.44.1 -> 1.44.2"
+aggregated-from = "https://raw.githubusercontent.com/swsnr/darklightd/refs/heads/main/supply-chain/audits.toml"

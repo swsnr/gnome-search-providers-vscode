@@ -30,10 +30,6 @@ notes = "Just a local service with little to no external exposure, so safe-to-ru
 version = "1.13.1"
 criteria = "safe-to-run"
 
-[[exemptions.async-fs]]
-version = "2.1.2"
-criteria = "safe-to-run"
-
 [[exemptions.async-io]]
 version = "2.4.0"
 criteria = "safe-to-run"
@@ -52,10 +48,6 @@ criteria = "safe-to-run"
 
 [[exemptions.async-task]]
 version = "4.7.1"
-criteria = "safe-to-run"
-
-[[exemptions.atomic-waker]]
-version = "1.1.2"
 criteria = "safe-to-run"
 
 [[exemptions.blocking]]
@@ -92,10 +84,6 @@ criteria = "safe-to-run"
 
 [[exemptions.mio]]
 version = "1.0.3"
-criteria = "safe-to-run"
-
-[[exemptions.once_cell]]
-version = "1.20.1"
 criteria = "safe-to-run"
 
 [[exemptions.ordered-stream]]
