@@ -2,8 +2,8 @@
 name = "gnome-search-providers-vscode"
 description = "Gnome search providers for recent workspace in VSCode variants"
 readme = "README.md"
-homepage = "https://github.com/swsnr/gnome-search-providers-vscode"
-repository = "https://github.com/swsnr/gnome-search-providers-vscode"
+homepage = "https://codeberg.org/swsnr/gnome-search-providers-vscode"
+repository = "https://codeberg.org/swsnr/gnome-search-providers-vscode"
 version = "2.5.1"
 license = "MPL-2.0"
 authors = ["Sebastian Wiesner <sebastian@swsnr.de>"]
