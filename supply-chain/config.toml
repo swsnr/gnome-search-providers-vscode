@@ -26,10 +26,6 @@ url = "https://codeberg.org/swsnr/rust-supply-chain/raw/branch/main/audits.toml"
 criteria = "safe-to-run"
 notes = "Just a local service with little to no external exposure, so safe-to-run is enough"
 
-[[exemptions.async-executor]]
-version = "1.13.1"
-criteria = "safe-to-run"
-
 [[exemptions.async-io]]
 version = "2.4.0"
 criteria = "safe-to-run"
@@ -54,10 +50,6 @@ criteria = "safe-to-run"
 version = "1.6.1"
 criteria = "safe-to-run"
 
-[[exemptions.concurrent-queue]]
-version = "2.5.0"
-criteria = "safe-to-run"
-
 [[exemptions.enumflags2]]
 version = "0.7.11"
 criteria = "safe-to-run"
@@ -80,6 +72,14 @@ criteria = "safe-to-run"
 
 [[exemptions.hashlink]]
 version = "0.9.1"
+criteria = "safe-to-run"
+
+[[exemptions.icu_locid_transform_data]]
+version = "1.5.1"
+criteria = "safe-to-run"
+
+[[exemptions.icu_properties_data]]
+version = "1.5.1"
 criteria = "safe-to-run"
 
 [[exemptions.mio]]

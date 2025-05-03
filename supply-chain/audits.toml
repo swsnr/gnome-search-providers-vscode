@@ -26,6 +26,11 @@ who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "0.1.4 -> 0.1.5"
 
+[[audits.icu_normalizer_data]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "1.5.0 -> 1.5.1"
+
 [[audits.libc]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
@@ -91,6 +96,11 @@ delta = "0.6.4 -> 0.9.3"
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "1.0.134 -> 1.0.135"
+
+[[audits.synstructure]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.13.1 -> 0.13.2"
 
 [[audits.unicode-ident]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
@@ -310,9 +320,15 @@ notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.libc]]
 criteria = "safe-to-run"
-user-id = 51017 # Yuki Okushi (JohnTitor)
+user-id = 51017
 start = "2020-03-17"
 end = "2026-01-19"
+
+[[trusted.libc]]
+criteria = "safe-to-run"
+user-id = 55123 # rust-lang-owner
+start = "2024-08-15"
+end = "2026-05-03"
 
 [[trusted.libsqlite3-sys]]
 criteria = "safe-to-run"
@@ -531,76 +547,76 @@ notes = "swsnr trusts BurntSushi"
 
 [[trusted.wasi]]
 criteria = "safe-to-run"
-user-id = 1 # Alex Crichton (alexcrichton)
+user-id = 1
 start = "2020-06-03"
 end = "2026-01-19"
 
 [[trusted.windows-sys]]
 criteria = "safe-to-run"
-user-id = 64539 # Kenny Kerr (kennykerr)
+user-id = 64539
 start = "2021-11-15"
 end = "2025-10-31"
 notes = "swsnr trusts kennykerr"
 
 [[trusted.windows-targets]]
 criteria = "safe-to-run"
-user-id = 64539 # Kenny Kerr (kennykerr)
+user-id = 64539
 start = "2022-09-09"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_aarch64_gnullvm]]
 criteria = "safe-to-run"
-user-id = 64539 # Kenny Kerr (kennykerr)
+user-id = 64539
 start = "2022-09-01"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_aarch64_msvc]]
 criteria = "safe-to-run"
-user-id = 64539 # Kenny Kerr (kennykerr)
+user-id = 64539
 start = "2021-11-05"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_i686_gnu]]
 criteria = "safe-to-run"
-user-id = 64539 # Kenny Kerr (kennykerr)
+user-id = 64539
 start = "2021-10-28"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_i686_gnullvm]]
 criteria = "safe-to-run"
-user-id = 64539 # Kenny Kerr (kennykerr)
+user-id = 64539
 start = "2024-04-02"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_i686_msvc]]
 criteria = "safe-to-run"
-user-id = 64539 # Kenny Kerr (kennykerr)
+user-id = 64539
 start = "2021-10-27"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_x86_64_gnu]]
 criteria = "safe-to-run"
-user-id = 64539 # Kenny Kerr (kennykerr)
+user-id = 64539
 start = "2021-10-28"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_x86_64_gnullvm]]
 criteria = "safe-to-run"
-user-id = 64539 # Kenny Kerr (kennykerr)
+user-id = 64539
 start = "2022-09-01"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_x86_64_msvc]]
 criteria = "safe-to-run"
-user-id = 64539 # Kenny Kerr (kennykerr)
+user-id = 64539
 start = "2021-10-27"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"

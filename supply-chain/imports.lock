@@ -8,6 +8,13 @@ user-id = 6423
 user-login = "zeenix"
 user-name = "Zeeshan Ali Khan"
 
+[[publisher.async-executor]]
+version = "1.13.2"
+when = "2025-04-28"
+user-id = 33035
+user-login = "taiki-e"
+user-name = "Taiki Endo"
+
 [[publisher.async-fs]]
 version = "1.6.0"
 when = "2022-08-17"
@@ -36,12 +43,12 @@ user-id = 539
 user-login = "cuviper"
 user-name = "Josh Stone"
 
-[[publisher.backtrace]]
-version = "0.3.74"
-when = "2024-09-08"
-user-id = 539
-user-login = "cuviper"
-user-name = "Josh Stone"
+[[publisher.concurrent-queue]]
+version = "2.1.0"
+when = "2023-01-15"
+user-id = 33035
+user-login = "taiki-e"
+user-name = "Taiki Endo"
 
 [[publisher.endi]]
 version = "1.1.0"
@@ -72,15 +79,14 @@ user-login = "cuviper"
 user-name = "Josh Stone"
 
 [[publisher.libc]]
-version = "0.2.153"
-when = "2024-01-31"
-user-id = 51017
-user-login = "JohnTitor"
-user-name = "Yuki Okushi"
+version = "0.2.172"
+when = "2025-04-15"
+user-id = 55123
+user-login = "rust-lang-owner"
 
 [[publisher.libsqlite3-sys]]
-version = "0.32.0"
-when = "2025-03-05"
+version = "0.33.0"
+when = "2025-04-19"
 user-id = 5062
 user-login = "gwenn"
 user-name = "gwenn"
@@ -88,13 +94,6 @@ user-name = "gwenn"
 [[publisher.linux-raw-sys]]
 version = "0.4.15"
 when = "2025-01-08"
-user-id = 6825
-user-login = "sunfishcode"
-user-name = "Dan Gohman"
-
-[[publisher.linux-raw-sys]]
-version = "0.9.4"
-when = "2025-04-09"
 user-id = 6825
 user-login = "sunfishcode"
 user-name = "Dan Gohman"
@@ -142,8 +141,8 @@ user-login = "BurntSushi"
 user-name = "Andrew Gallant"
 
 [[publisher.rusqlite]]
-version = "0.34.0"
-when = "2025-03-05"
+version = "0.35.0"
+when = "2025-04-19"
 user-id = 5062
 user-login = "gwenn"
 user-name = "gwenn"
@@ -151,13 +150,6 @@ user-name = "gwenn"
 [[publisher.rustix]]
 version = "0.38.44"
 when = "2025-01-21"
-user-id = 6825
-user-login = "sunfishcode"
-user-name = "Dan Gohman"
-
-[[publisher.rustix]]
-version = "1.0.5"
-when = "2025-04-01"
 user-id = 6825
 user-login = "sunfishcode"
 user-name = "Dan Gohman"
@@ -212,8 +204,8 @@ user-login = "mbrubeck"
 user-name = "Matt Brubeck"
 
 [[publisher.syn]]
-version = "2.0.100"
-when = "2025-03-09"
+version = "2.0.101"
+when = "2025-04-26"
 user-id = 3618
 user-login = "dtolnay"
 user-name = "David Tolnay"
@@ -239,123 +231,26 @@ user-id = 6741
 user-login = "Darksonn"
 user-name = "Alice Ryhl"
 
-[[publisher.toml_edit]]
-version = "0.22.24"
-when = "2025-02-10"
+[[publisher.toml_datetime]]
+version = "0.6.9"
+when = "2025-04-25"
 user-id = 6743
 user-login = "epage"
 user-name = "Ed Page"
 
-[[publisher.valuable]]
-version = "0.1.1"
-when = "2025-01-17"
-user-id = 33035
-user-login = "taiki-e"
-user-name = "Taiki Endo"
-
-[[publisher.wasi]]
-version = "0.11.0+wasi-snapshot-preview1"
-when = "2022-01-19"
-user-id = 1
-user-login = "alexcrichton"
-user-name = "Alex Crichton"
-
-[[publisher.wasi]]
-version = "0.14.2+wasi-0.2.4"
-when = "2025-02-28"
-user-id = 1
-user-login = "alexcrichton"
-user-name = "Alex Crichton"
-
-[[publisher.windows-sys]]
-version = "0.52.0"
-when = "2023-11-15"
-user-id = 64539
-user-login = "kennykerr"
-user-name = "Kenny Kerr"
-
-[[publisher.windows-sys]]
-version = "0.59.0"
-when = "2024-07-30"
-user-id = 64539
-user-login = "kennykerr"
-user-name = "Kenny Kerr"
-
-[[publisher.windows-targets]]
-version = "0.52.6"
-when = "2024-07-03"
-user-id = 64539
-user-login = "kennykerr"
-user-name = "Kenny Kerr"
-
-[[publisher.windows_aarch64_gnullvm]]
-version = "0.52.6"
-when = "2024-07-03"
-user-id = 64539
-user-login = "kennykerr"
-user-name = "Kenny Kerr"
-
-[[publisher.windows_aarch64_msvc]]
-version = "0.52.6"
-when = "2024-07-03"
-user-id = 64539
-user-login = "kennykerr"
-user-name = "Kenny Kerr"
-
-[[publisher.windows_i686_gnu]]
-version = "0.52.6"
-when = "2024-07-03"
-user-id = 64539
-user-login = "kennykerr"
-user-name = "Kenny Kerr"
-
-[[publisher.windows_i686_gnullvm]]
-version = "0.52.6"
-when = "2024-07-03"
-user-id = 64539
-user-login = "kennykerr"
-user-name = "Kenny Kerr"
-
-[[publisher.windows_i686_msvc]]
-version = "0.52.6"
-when = "2024-07-03"
-user-id = 64539
-user-login = "kennykerr"
-user-name = "Kenny Kerr"
-
-[[publisher.windows_x86_64_gnu]]
-version = "0.52.6"
-when = "2024-07-03"
-user-id = 64539
-user-login = "kennykerr"
-user-name = "Kenny Kerr"
-
-[[publisher.windows_x86_64_gnullvm]]
-version = "0.52.6"
-when = "2024-07-03"
-user-id = 64539
-user-login = "kennykerr"
-user-name = "Kenny Kerr"
-
-[[publisher.windows_x86_64_msvc]]
-version = "0.52.6"
-when = "2024-07-03"
-user-id = 64539
-user-login = "kennykerr"
-user-name = "Kenny Kerr"
+[[publisher.toml_edit]]
+version = "0.22.26"
+when = "2025-04-28"
+user-id = 6743
+user-login = "epage"
+user-name = "Ed Page"
 
 [[publisher.winnow]]
-version = "0.7.6"
-when = "2025-04-07"
+version = "0.7.9"
+when = "2025-05-02"
 user-id = 6743
 user-login = "epage"
 user-name = "Ed Page"
-
-[[publisher.wit-bindgen-rt]]
-version = "0.39.0"
-when = "2025-02-05"
-user-id = 73222
-user-login = "wasmtime-publish"
 
 [[publisher.xdg-home]]
 version = "1.3.0"
@@ -405,24 +300,6 @@ when = "2025-02-05"
 user-id = 6423
 user-login = "zeenix"
 user-name = "Zeeshan Ali Khan"
-
-[[audits.bytecode-alliance.wildcard-audits.wit-bindgen-rt]]
-who = "Alex Crichton <alex@alexcrichton.com>"
-criteria = "safe-to-deploy"
-user-id = 73222 # wasmtime-publish
-start = "2023-01-01"
-end = "2025-05-08"
-notes = """
-The Bytecode Alliance uses the `wasmtime-publish` crates.io account to automate
-publication of this crate from CI. This repository requires all PRs are reviewed
-by a Bytecode Alliance maintainer and it owned by the Bytecode Alliance itself.
-"""
-
-[[audits.bytecode-alliance.audits.adler2]]
-who = "Alex Crichton <alex@alexcrichton.com>"
-criteria = "safe-to-deploy"
-version = "2.0.0"
-notes = "Fork of the original `adler` crate, zero unsfae code, works in `no_std`, does what it says on th tin."
 
 [[audits.bytecode-alliance.audits.fastrand]]
 who = "Alex Crichton <alex@alexcrichton.com>"
@@ -507,17 +384,6 @@ who = "Alex Crichton <alex@alexcrichton.com>"
 criteria = "safe-to-deploy"
 delta = "0.2.13 -> 0.2.14"
 notes = "No substantive changes in this update"
-
-[[audits.bytecode-alliance.audits.rustc-demangle]]
-who = "Alex Crichton <alex@alexcrichton.com>"
-criteria = "safe-to-deploy"
-version = "0.1.21"
-notes = "I am the author of this crate."
-
-[[audits.bytecode-alliance.audits.rustc-demangle]]
-who = "Alex Crichton <alex@alexcrichton.com>"
-criteria = "safe-to-deploy"
-delta = "0.1.21 -> 0.1.24"
 
 [[audits.bytecode-alliance.audits.signal-hook-registry]]
 who = "Pat Hickey <phickey@fastly.com>"
@@ -777,12 +643,6 @@ criteria = "safe-to-run"
 version = "1.5.0"
 aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
 
-[[audits.google.audits.icu_locid_transform_data]]
-who = "George Burgess IV <gbiv@google.com>"
-criteria = "safe-to-run"
-version = "1.5.0"
-aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
-
 [[audits.google.audits.icu_normalizer_data]]
 who = "George Burgess IV <gbiv@google.com>"
 criteria = "safe-to-run"
@@ -866,12 +726,6 @@ criteria = "safe-to-deploy"
 delta = "1.4.0 -> 1.5.0"
 notes = "Unsafe review notes: https://crrev.com/c/5650836"
 aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
-
-[[audits.google.audits.libc]]
-who = "Hsin-chen Chuang <chharry@chromium.org>"
-criteria = "safe-to-run"
-delta = "0.2.153 -> 0.2.170"
-aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
 
 [[audits.google.audits.litemap]]
 who = "George Burgess IV <gbiv@google.com>"
@@ -1103,12 +957,6 @@ criteria = "safe-to-run"
 version = "0.7.6"
 aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
 
-[[audits.google.audits.toml_datetime]]
-who = "Hung-Hsien Chen <hunghsienchen@chromium.org>"
-criteria = "safe-to-run"
-version = "0.6.8"
-aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
-
 [[audits.google.audits.unicode-ident]]
 who = "Lukasz Anforowicz <lukasza@chromium.org>"
 criteria = "safe-to-deploy"
@@ -1163,17 +1011,6 @@ who = "George Burgess IV <gbiv@google.com>"
 criteria = "safe-to-run"
 version = "1.0.4"
 aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
-
-[[audits.google.audits.winapi]]
-who = "danakj@chromium.org"
-criteria = "safe-to-run"
-version = "0.3.9"
-notes = """
-Reviewed in https://crrev.com/c/5171063
-
-Previously reviewed during security review and the audit is grandparented in.
-"""
-aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
 
 [[audits.google.audits.write16]]
 who = "George Burgess IV <gbiv@google.com>"
@@ -1339,19 +1176,6 @@ criteria = "safe-to-deploy"
 delta = "1.4.0 -> 1.5.0"
 aggregated-from = "https://hg.mozilla.org/mozilla-central/raw-file/tip/supply-chain/audits.toml"
 
-[[audits.mozilla.audits.icu_properties_data]]
-who = "Jonathan Kew <jkew@mozilla.com>"
-criteria = "safe-to-deploy"
-version = "1.4.0"
-notes = "Compile-time static data for the icu_properties crate."
-aggregated-from = "https://hg.mozilla.org/mozilla-central/raw-file/tip/supply-chain/audits.toml"
-
-[[audits.mozilla.audits.icu_properties_data]]
-who = "Makoto Kato <m_kato@ga2.so-net.ne.jp>"
-criteria = "safe-to-deploy"
-delta = "1.4.0 -> 1.5.0"
-aggregated-from = "https://hg.mozilla.org/mozilla-central/raw-file/tip/supply-chain/audits.toml"
-
 [[audits.mozilla.audits.nix]]
 who = "Alex Franchuk <afranchuk@mozilla.com>"
 criteria = "safe-to-deploy"
@@ -1437,6 +1261,12 @@ criteria = "safe-to-run"
 delta = "1.8.0 -> 2.3.1"
 aggregated-from = "https://raw.githubusercontent.com/swsnr/turnon/refs/heads/main/supply-chain/audits.toml"
 
+[[audits.swsnr.audits.concurrent-queue]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "2.1.0 -> 2.5.0"
+aggregated-from = "https://raw.githubusercontent.com/swsnr/picture-of-the-day/refs/heads/main/supply-chain/audits.toml"
+
 [[audits.swsnr.audits.crossbeam-utils]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
@@ -1454,7 +1284,7 @@ aggregated-from = "https://raw.githubusercontent.com/swsnr/turnon/refs/heads/mai
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-deploy"
 delta = "0.7.7 -> 0.7.11"
-aggregated-from = "https://raw.githubusercontent.com/swsnr/darklightd/refs/heads/main/supply-chain/audits.toml"
+aggregated-from = "https://codeberg.org/swsnr/darklightd/raw/branch/main/supply-chain/audits.toml"
 
 [[audits.swsnr.audits.event-listener-strategy]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
@@ -1474,7 +1304,13 @@ aggregated-from = "https://raw.githubusercontent.com/swsnr/turnon/refs/heads/mai
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-deploy"
 delta = "2.1.1 -> 2.3.0"
-aggregated-from = "https://raw.githubusercontent.com/swsnr/darklightd/refs/heads/main/supply-chain/audits.toml"
+aggregated-from = "https://codeberg.org/swsnr/darklightd/raw/branch/main/supply-chain/audits.toml"
+
+[[audits.swsnr.audits.hashbrown]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.15.2 -> 0.15.3"
+aggregated-from = "https://codeberg.org/swsnr/darklightd/raw/branch/main/supply-chain/audits.toml"
 
 [[audits.swsnr.audits.memoffset]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
@@ -1517,6 +1353,18 @@ criteria = "safe-to-deploy"
 delta = "3.2.0 -> 3.3.0"
 aggregated-from = "https://raw.githubusercontent.com/swsnr/picture-of-the-day/refs/heads/main/supply-chain/audits.toml"
 
+[[audits.swsnr.audits.proc-macro2]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "1.0.94 -> 1.0.95"
+aggregated-from = "https://codeberg.org/swsnr/darklightd/raw/branch/main/supply-chain/audits.toml"
+
+[[audits.swsnr.audits.signal-hook-registry]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "1.4.2 -> 1.4.5"
+aggregated-from = "https://codeberg.org/swsnr/darklightd/raw/branch/main/supply-chain/audits.toml"
+
 [[audits.swsnr.audits.socket2]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
@@ -1528,10 +1376,10 @@ aggregated-from = "https://raw.githubusercontent.com/swsnr/turnon/refs/heads/mai
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "0.5.8 -> 0.5.9"
-aggregated-from = "https://raw.githubusercontent.com/swsnr/darklightd/refs/heads/main/supply-chain/audits.toml"
+aggregated-from = "https://codeberg.org/swsnr/darklightd/raw/branch/main/supply-chain/audits.toml"
 
 [[audits.swsnr.audits.tokio]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "1.44.1 -> 1.44.2"
-aggregated-from = "https://raw.githubusercontent.com/swsnr/darklightd/refs/heads/main/supply-chain/audits.toml"
+aggregated-from = "https://codeberg.org/swsnr/darklightd/raw/branch/main/supply-chain/audits.toml"

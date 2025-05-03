@@ -15,7 +15,7 @@ edition = "2024"
 publish = false
 
 [dependencies]
-rusqlite = { version = "0.34.0", features = ["serde_json"] }
+rusqlite = { version = "0.35.0", features = ["serde_json"] }
 serde = { version = "1.0.216", features = ["derive"] }
 serde_json = { version = "1.0.133" }
 tokio = { version = "1.43.0", features = ["rt", "macros", "process", "signal", "sync", "time"] }
