@@ -60,7 +60,5 @@ package: _git-archive _vendor
     ssh-keygen -Y sign -f dist/key -n file "dist/gnome-search-providers-vscode-$(git describe)-vendor.tar.zst"
     rm dist/key
 
-release *ARGS: test-all
+release *ARGS: test-all && package
     cargo release {{ARGS}}
-    just package
-    echo "Upload dist/ contents to codeberg release now"
