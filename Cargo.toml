@@ -35,5 +35,3 @@ pre-release-commit-message = "Release {{version}}"
 tag-prefix = ""
 tag-message = "Version {{tag_name}}"
 publish = false
-verify = false
-push = false
