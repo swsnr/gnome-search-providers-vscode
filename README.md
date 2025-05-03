@@ -19,11 +19,11 @@ I provide a binary package at [home:swsnr](https://build.opensuse.org/repositori
 
 ### From source
 
-Install [rust](https://www.rust-lang.org/tools/install) then run
+Install [rust](https://www.rust-lang.org/tools/install) and [just](https://just.systems) then run
 
 ```console
-$ make build
-$ sudo make install
+$ cargo build --release
+$ sudo just install
 ```
 
 This install to `/usr/local/`.
