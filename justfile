@@ -10,6 +10,9 @@ search_providers_dir := datadir / 'gnome-shell/search-providers'
 default:
     just --list
 
+clean:
+    rm -rf dist vendor
+
 install:
 	install -Dm644 -t {{destdir}}/{{search_providers_dir}} providers/*.ini
 	install -Dm644 -t {{destdir}}/{{userunitdir}} systemd/gnome-search-providers-vscode.service
