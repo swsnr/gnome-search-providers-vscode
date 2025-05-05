@@ -89,7 +89,7 @@ pub fn load_workspaces_from_path<P: AsRef<Path>>(db_path: P) -> Result<Vec<Strin
     let connection = open_connection(db_path.as_ref())?;
     load_workspaces(&connection)
         .inspect(|workspaces| {
-            debug!("Found {} workspaces", workspaces.len());
+            debug!("Loaded {} workspaces", workspaces.len());
         })
         .inspect_err(|error| {
             error!(

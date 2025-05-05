@@ -165,7 +165,13 @@ impl SearchProvider {
             .load_workspaces()
             .await
             .map_err(|error: std::io::Error| zbus::fdo::Error::IOError(error.to_string()))?;
-        Ok(search::find_matching_uris(workspaces, &terms))
+        let n_workspaces = workspaces.len();
+        let results = search::find_matching_uris(workspaces, &terms);
+        debug!(
+            "Found {} matching out of {n_workspaces} loaded workspaces",
+            results.len()
+        );
+        Ok(results)
     }
 
     #[instrument(skip(self))]
@@ -178,7 +184,13 @@ impl SearchProvider {
             "Searching for terms {terms:?} in {} previous results",
             previous_results.len()
         );
-        search::find_matching_uris(previous_results, &terms)
+        let n_previous_results = previous_results.len();
+        let results = search::find_matching_uris(previous_results, &terms);
+        debug!(
+            "Found {} out of {n_previous_results} previously matching workspaces",
+            results.len(),
+        );
+        results
     }
 
     #[instrument(skip(self))]
