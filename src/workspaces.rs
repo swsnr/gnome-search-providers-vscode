@@ -49,7 +49,7 @@ fn query_recently_opened_path_lists(
             |row| row.get(0),
         )
         .optional()
-        .map_err(|error| Error::new(ErrorKind::Other, error))?
+        .map_err(Error::other)?
         .map(|value| {
             serde_json::from_value(value).map_err(|error| Error::new(ErrorKind::InvalidData, error))
         })
@@ -73,13 +73,10 @@ fn load_workspaces(connection: &rusqlite::Connection) -> Result<Vec<String>> {
 fn open_connection<P: AsRef<Path>>(db_path: P) -> Result<rusqlite::Connection> {
     let flags = OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX;
     rusqlite::Connection::open_with_flags(db_path.as_ref(), flags).map_err(|error| {
-        Error::new(
-            ErrorKind::Other,
-            format!(
-                "Failed to open connection to {}: {error}",
-                db_path.as_ref().display()
-            ),
-        )
+        Error::other(format!(
+            "Failed to open connection to {}: {error}",
+            db_path.as_ref().display()
+        ))
     })
 }
 
