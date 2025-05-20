@@ -547,76 +547,76 @@ notes = "swsnr trusts BurntSushi"
 
 [[trusted.wasi]]
 criteria = "safe-to-run"
-user-id = 1
+user-id = 1 # Alex Crichton (alexcrichton)
 start = "2020-06-03"
 end = "2026-01-19"
 
 [[trusted.windows-sys]]
 criteria = "safe-to-run"
-user-id = 64539
+user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2021-11-15"
 end = "2025-10-31"
 notes = "swsnr trusts kennykerr"
 
 [[trusted.windows-targets]]
 criteria = "safe-to-run"
-user-id = 64539
+user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2022-09-09"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_aarch64_gnullvm]]
 criteria = "safe-to-run"
-user-id = 64539
+user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2022-09-01"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_aarch64_msvc]]
 criteria = "safe-to-run"
-user-id = 64539
+user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2021-11-05"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_i686_gnu]]
 criteria = "safe-to-run"
-user-id = 64539
+user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2021-10-28"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_i686_gnullvm]]
 criteria = "safe-to-run"
-user-id = 64539
+user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2024-04-02"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_i686_msvc]]
 criteria = "safe-to-run"
-user-id = 64539
+user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2021-10-27"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_x86_64_gnu]]
 criteria = "safe-to-run"
-user-id = 64539
+user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2021-10-28"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_x86_64_gnullvm]]
 criteria = "safe-to-run"
-user-id = 64539
+user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2022-09-01"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.windows_x86_64_msvc]]
 criteria = "safe-to-run"
-user-id = 64539
+user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2021-10-27"
 end = "2025-11-03"
 notes = "Trusted by mozilla and bytecode-alliance"

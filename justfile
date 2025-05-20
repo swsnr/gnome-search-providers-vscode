@@ -19,10 +19,8 @@ install:
 	install -Dm644 -t {{destdir}}/{{dbus_services_dir}} dbus-1/de.swsnr.VSCodeSearchProvider.service
 	install -Dm755 -t {{destdir}}/{{bindir}} target/release/gnome-search-providers-vscode
 
-# Vet only Linux dependencies.
 vet *ARGS:
-    @# CARGO_BUILD_TARGET for this Seems to be unofficial, see https://github.com/mozilla/cargo-vet/issues/579, but works
-    env CARGO_BUILD_TARGET=x86_64-unknown-linux-gnu cargo +stable vet {{ARGS}}
+    cargo +stable vet {{ARGS}}
 
 test-all:
     just vet --locked

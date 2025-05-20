@@ -26,6 +26,10 @@ url = "https://codeberg.org/swsnr/rust-supply-chain/raw/branch/main/audits.toml"
 criteria = "safe-to-run"
 notes = "Just a local service with little to no external exposure, so safe-to-run is enough"
 
+[[exemptions.addr2line]]
+version = "0.24.2"
+criteria = "safe-to-run"
+
 [[exemptions.async-io]]
 version = "2.4.0"
 criteria = "safe-to-run"
@@ -36,6 +40,10 @@ criteria = "safe-to-run"
 
 [[exemptions.async-process]]
 version = "2.3.0"
+criteria = "safe-to-run"
+
+[[exemptions.async-recursion]]
+version = "1.1.1"
 criteria = "safe-to-run"
 
 [[exemptions.async-signal]]
@@ -70,8 +78,20 @@ criteria = "safe-to-run"
 version = "2.6.0"
 criteria = "safe-to-run"
 
+[[exemptions.getrandom]]
+version = "0.3.2"
+criteria = "safe-to-run"
+
+[[exemptions.gimli]]
+version = "0.31.1"
+criteria = "safe-to-run"
+
 [[exemptions.hashlink]]
 version = "0.9.1"
+criteria = "safe-to-run"
+
+[[exemptions.hermit-abi]]
+version = "0.4.0"
 criteria = "safe-to-run"
 
 [[exemptions.icu_locid_transform_data]]
@@ -86,6 +106,10 @@ criteria = "safe-to-run"
 version = "1.0.3"
 criteria = "safe-to-run"
 
+[[exemptions.object]]
+version = "0.36.7"
+criteria = "safe-to-run"
+
 [[exemptions.ordered-stream]]
 version = "0.2.0"
 criteria = "safe-to-run"
@@ -96,6 +120,10 @@ criteria = "safe-to-run"
 
 [[exemptions.polling]]
 version = "3.7.4"
+criteria = "safe-to-run"
+
+[[exemptions.r-efi]]
+version = "5.2.0"
 criteria = "safe-to-run"
 
 [[exemptions.sharded-slab]]
@@ -120,4 +148,16 @@ criteria = "safe-to-run"
 
 [[exemptions.tracing-subscriber]]
 version = "0.3.19"
+criteria = "safe-to-run"
+
+[[exemptions.uds_windows]]
+version = "1.1.0"
+criteria = "safe-to-run"
+
+[[exemptions.winapi-i686-pc-windows-gnu]]
+version = "0.4.0"
+criteria = "safe-to-run"
+
+[[exemptions.winapi-x86_64-pc-windows-gnu]]
+version = "0.4.0"
 criteria = "safe-to-run"
