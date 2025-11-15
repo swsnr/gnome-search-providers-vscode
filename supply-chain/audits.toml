@@ -46,6 +46,11 @@ who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "0.4.24 -> 0.4.25"
 
+[[audits.nu-ansi-term]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.50.1 -> 0.50.3"
+
 [[audits.once_cell]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
@@ -344,19 +349,19 @@ end = "2026-01-19"
 
 [[trusted.logcontrol]]
 criteria = "safe-to-run"
-user-id = 4372 # Sebastian Wiesner (swsnr)
+user-id = 4372 # swsnr
 start = "2023-09-30"
 end = "2026-02-22"
 
 [[trusted.logcontrol-tracing]]
 criteria = "safe-to-run"
-user-id = 4372 # Sebastian Wiesner (swsnr)
+user-id = 4372 # swsnr
 start = "2023-09-30"
 end = "2026-02-22"
 
 [[trusted.logcontrol-zbus]]
 criteria = "safe-to-run"
-user-id = 4372 # Sebastian Wiesner (swsnr)
+user-id = 4372 # swsnr
 start = "2023-09-30"
 end = "2026-02-22"
 
