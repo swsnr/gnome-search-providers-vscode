@@ -72,10 +72,7 @@ where
 }
 
 fn name_from_uri(uri_or_path: &str) -> Option<&str> {
-    uri_or_path
-        .split('/')
-        .filter(|seg| !seg.is_empty())
-        .next_back()
+    uri_or_path.split('/').rfind(|seg| !seg.is_empty())
 }
 
 /// Get the name and description for the given workspace URI or path.
