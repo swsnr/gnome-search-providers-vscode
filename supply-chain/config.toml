@@ -26,10 +26,6 @@ url = "https://codeberg.org/swsnr/rust-supply-chain/raw/branch/main/audits.toml"
 criteria = "safe-to-run"
 notes = "Just a local service with little to no external exposure, so safe-to-run is enough"
 
-[[exemptions.addr2line]]
-version = "0.24.2"
-criteria = "safe-to-run"
-
 [[exemptions.async-lock]]
 version = "3.4.0"
 criteria = "safe-to-run"
@@ -42,8 +38,16 @@ criteria = "safe-to-run"
 version = "4.7.1"
 criteria = "safe-to-run"
 
-[[exemptions.backtrace]]
-version = "0.3.75"
+[[exemptions.cc]]
+version = "1.2.49"
+criteria = "safe-to-run"
+
+[[exemptions.cordyceps]]
+version = "0.3.4"
+criteria = "safe-to-run"
+
+[[exemptions.diatomic-waker]]
+version = "0.2.3"
 criteria = "safe-to-run"
 
 [[exemptions.enumflags2]]
@@ -66,8 +70,28 @@ criteria = "safe-to-run"
 version = "0.1.9"
 criteria = "safe-to-run"
 
+[[exemptions.find-msvc-tools]]
+version = "0.1.5"
+criteria = "safe-to-run"
+
+[[exemptions.fixedbitset]]
+version = "0.5.7"
+criteria = "safe-to-run"
+
+[[exemptions.futures-buffered]]
+version = "0.2.12"
+criteria = "safe-to-run"
+
+[[exemptions.futures-concurrency]]
+version = "7.6.3"
+criteria = "safe-to-run"
+
 [[exemptions.futures-lite]]
-version = "2.6.0"
+version = "2.6.1"
+criteria = "safe-to-run"
+
+[[exemptions.generator]]
+version = "0.8.7"
 criteria = "safe-to-run"
 
 [[exemptions.hashlink]]
@@ -78,20 +102,24 @@ criteria = "safe-to-run"
 version = "0.5.2"
 criteria = "safe-to-run"
 
-[[exemptions.io-uring]]
-version = "0.7.9"
+[[exemptions.log]]
+version = "0.4.29"
 criteria = "safe-to-run"
 
-[[exemptions.mio]]
-version = "1.0.4"
-criteria = "safe-to-run"
-
-[[exemptions.object]]
-version = "0.36.7"
+[[exemptions.loom]]
+version = "0.7.2"
 criteria = "safe-to-run"
 
 [[exemptions.ordered-stream]]
 version = "0.2.0"
+criteria = "safe-to-run"
+
+[[exemptions.pin-project]]
+version = "1.1.10"
+criteria = "safe-to-run"
+
+[[exemptions.pin-project-internal]]
+version = "1.1.10"
 criteria = "safe-to-run"
 
 [[exemptions.piper]]
@@ -102,8 +130,12 @@ criteria = "safe-to-run"
 version = "5.2.0"
 criteria = "safe-to-run"
 
-[[exemptions.rustc-demangle]]
-version = "0.1.26"
+[[exemptions.rustversion]]
+version = "1.0.22"
+criteria = "safe-to-run"
+
+[[exemptions.spin]]
+version = "0.10.0"
 criteria = "safe-to-run"
 
 [[exemptions.tracing-journald]]
@@ -120,4 +152,44 @@ criteria = "safe-to-run"
 
 [[exemptions.winapi-x86_64-pc-windows-gnu]]
 version = "0.4.0"
+criteria = "safe-to-run"
+
+[[exemptions.windows]]
+version = "0.61.3"
+criteria = "safe-to-run"
+
+[[exemptions.windows-collections]]
+version = "0.2.0"
+criteria = "safe-to-run"
+
+[[exemptions.windows-core]]
+version = "0.61.2"
+criteria = "safe-to-run"
+
+[[exemptions.windows-future]]
+version = "0.2.1"
+criteria = "safe-to-run"
+
+[[exemptions.windows-implement]]
+version = "0.60.2"
+criteria = "safe-to-run"
+
+[[exemptions.windows-interface]]
+version = "0.59.3"
+criteria = "safe-to-run"
+
+[[exemptions.windows-numerics]]
+version = "0.2.0"
+criteria = "safe-to-run"
+
+[[exemptions.windows-result]]
+version = "0.3.4"
+criteria = "safe-to-run"
+
+[[exemptions.windows-strings]]
+version = "0.4.2"
+criteria = "safe-to-run"
+
+[[exemptions.windows-threading]]
+version = "0.1.0"
 criteria = "safe-to-run"

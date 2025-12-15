@@ -9,9 +9,11 @@ use std::{
     path::PathBuf,
 };
 
-use futures_util::future::join_all;
+use async_lock::OnceCell;
+use async_process::Command;
+use blocking::unblock;
+use futures_concurrency::prelude::*;
 use serde::Serialize;
-use tokio::{process::Command, sync::OnceCell};
 use tracing::{Span, debug, info, instrument};
 use url::Url;
 use zbus::{
@@ -108,15 +110,7 @@ impl SearchProvider {
             .get_or_init(|| async {
                 let code = self.code;
                 let span = Span::current();
-                let result = tokio::task::spawn_blocking(move || {
-                    span.in_scope(|| code.find_desktop_entry())
-                })
-                .await;
-                match result {
-                    Ok(result) => result,
-                    // blocking tasks can't be cancelled anyway so we can safely convert into panic
-                    Err(err) => std::panic::resume_unwind(err.into_panic()),
-                }
+                unblock(move || span.in_scope(|| code.find_desktop_entry())).await
             })
             .await
             .as_ref()
@@ -143,15 +137,7 @@ impl SearchProvider {
     async fn load_workspaces(&self) -> std::io::Result<Vec<String>> {
         let db_path = self.code.database_path();
         let span = Span::current();
-        let result = tokio::task::spawn_blocking(move || {
-            span.in_scope(|| workspaces::load_workspaces_from_path(&db_path))
-        })
-        .await;
-        match result {
-            Ok(result) => result,
-            // blocking tasks can't be cancelled anyway so we can safely convert into panic
-            Err(err) => std::panic::resume_unwind(err.into_panic()),
-        }
+        unblock(move || span.in_scope(|| workspaces::load_workspaces_from_path(&db_path))).await
     }
 }
 
@@ -195,7 +181,12 @@ impl SearchProvider {
 
     #[instrument(skip(self))]
     async fn get_result_metas(&self, identifiers: Vec<String>) -> Vec<ResultMeta> {
-        join_all(identifiers.iter().map(|uri| self.get_result_meta(uri))).await
+        identifiers
+            .iter()
+            .map(|uri| self.get_result_meta(uri))
+            .collect::<Vec<_>>()
+            .join()
+            .await
     }
 
     #[instrument(skip(self))]

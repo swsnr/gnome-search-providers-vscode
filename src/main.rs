@@ -21,18 +21,16 @@
 #![allow(clippy::used_underscore_binding)]
 #![forbid(unsafe_code)]
 
-use futures_util::FutureExt;
+use std::time::Duration;
+
+use async_executor::LocalExecutor;
+use async_io::Timer;
+use async_signal::Signals;
+use futures_lite::{StreamExt as _, future::race, stream};
 use logcontrol_tracing::{PrettyLogControl1LayerFactory, TracingLogControl1};
-use logcontrol_zbus::ConnectionBuilderExt;
+use logcontrol_zbus::{ConnectionBuilderExt, logcontrol::LogControl1};
 use searchprovider::{CodeVariant, SearchProvider};
-use tokio::{
-    signal::{
-        ctrl_c,
-        unix::{SignalKind, signal},
-    },
-    time::{Duration, Instant},
-};
-use tracing::{Level, error, info};
+use tracing::{Level, info, warn};
 use tracing_subscriber::{Registry, layer::SubscriberExt};
 
 mod search;
@@ -40,24 +38,7 @@ mod searchprovider;
 mod workspaces;
 mod xdg;
 
-/// Return when `connection` was idle for the `idle_timeout` duration.
-async fn connection_idle_timeout(connection: &zbus::Connection, idle_timeout: Duration) {
-    let idle_timer = tokio::time::sleep(idle_timeout);
-    tokio::pin!(idle_timer);
-    loop {
-        tokio::select! {
-            () = connection.monitor_activity() => {
-                idle_timer.as_mut().reset(Instant::now() + idle_timeout);
-            }
-            () = &mut idle_timer => {
-                break;
-            }
-        }
-    }
-}
-
-#[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn setup_logging() -> impl LogControl1 {
     // Setup env filter for convenient log control on console
     let env_filter = tracing_subscriber::EnvFilter::try_from_default_env().ok();
     // If an env filter is set with $RUST_LOG use the lowest level as default for the control part,
@@ -71,76 +52,104 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Level::INFO
     };
     let (control, control_layer) =
-        TracingLogControl1::new_auto(PrettyLogControl1LayerFactory, default_level)?;
+        TracingLogControl1::new_auto(PrettyLogControl1LayerFactory, default_level).unwrap();
     let subscriber = Registry::default().with(env_filter).with(control_layer);
     tracing::subscriber::set_global_default(subscriber).unwrap();
+    control
+}
 
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let logcontrol = setup_logging();
     tracing::info!(
         "Starting VSCode search providers for GNOME version {}",
         env!("CARGO_PKG_VERSION")
     );
+    let executor = LocalExecutor::new().leak();
 
-    let connection = zbus::connection::Builder::session()?
-        .name("de.swsnr.VSCodeSearchProvider")?
-        .serve_log_control(logcontrol_zbus::LogControl1::new(control))?
-        .serve_at(
-            "/de/swsnr/VSCodeSearchProvider/code_oss",
-            SearchProvider::new(CodeVariant {
-                app_id: "code-oss",
-                config_directory_name: "Code - OSS",
-            }),
-        )?
-        .serve_at(
-            "/de/swsnr/VSCodeSearchProvider/code",
-            SearchProvider::new(CodeVariant {
-                app_id: "code",
-                config_directory_name: "Code",
-            }),
-        )?
-        .serve_at(
-            "/de/swsnr/VSCodeSearchProvider/codium",
-            SearchProvider::new(CodeVariant {
-                app_id: "codium",
-                config_directory_name: "VSCodium",
-            }),
-        )?
-        .serve_at(
-            "/de/swsnr/VSCodeSearchProvider/code_insiders",
-            SearchProvider::new(CodeVariant {
-                app_id: "code-insiders",
-                config_directory_name: "Code - Insiders",
-            }),
-        )?
-        .build()
-        .await?;
-    info!("Connected to bus, serving search provider");
+    let main_task = executor.spawn(async move {
+        let connection = zbus::connection::Builder::session()?
+            .name("de.swsnr.VSCodeSearchProvider")?
+            .internal_executor(false)
+            .serve_log_control(logcontrol_zbus::LogControl1::new(logcontrol))?
+            .serve_at(
+                "/de/swsnr/VSCodeSearchProvider/code_oss",
+                SearchProvider::new(CodeVariant {
+                    app_id: "code-oss",
+                    config_directory_name: "Code - OSS",
+                }),
+            )?
+            .serve_at(
+                "/de/swsnr/VSCodeSearchProvider/code",
+                SearchProvider::new(CodeVariant {
+                    app_id: "code",
+                    config_directory_name: "Code",
+                }),
+            )?
+            .serve_at(
+                "/de/swsnr/VSCodeSearchProvider/codium",
+                SearchProvider::new(CodeVariant {
+                    app_id: "codium",
+                    config_directory_name: "VSCodium",
+                }),
+            )?
+            .serve_at(
+                "/de/swsnr/VSCodeSearchProvider/code_insiders",
+                SearchProvider::new(CodeVariant {
+                    app_id: "code-insiders",
+                    config_directory_name: "Code - Insiders",
+                }),
+            )?
+            .build()
+            .await?;
+        info!("Connected to bus, serving search provider");
 
-    // Exit the service on Ctrl+C (i.e. keyboard interrupt on the local console),
-    // SIGTERM, i.e. from systemd, and when it's been idle for a while so
-    // that it doesn't keep running even if the user doesn't search anymore.
-    let idle_timeout = Duration::from_secs(300);
-    let mut sigterm = signal(SignalKind::terminate())?;
-    tokio::select! {
-        () = connection_idle_timeout(&connection, idle_timeout) => {
-            info!("Idle timeout after {idle_timeout:?}");
-            // We know that there's not activity on the connection at this point
-            // so we forcibly close it fast.
-            connection.close().await?;
-        }
-        result = ctrl_c().fuse() => {
-            if let Err(error) = result {
-                error!("Ctrl-C failed? {error}");
-            } else {
-                info!("Received SIGINT");
-            }
-            connection.graceful_shutdown().await;
-        }
-        _ = sigterm.recv().fuse() => {
-            info!("Received SIGTERM");
-            connection.graceful_shutdown().await;
-        }
-    }
+        // Exit the service on Ctrl+C (i.e. keyboard interrupt on the local console),
+        // SIGTERM, i.e. from systemd, and when it's been idle for a while so
+        // that it doesn't keep running even if the user doesn't search anymore.
+        let terminate = Signals::new([async_signal::Signal::Term, async_signal::Signal::Int])?
+            .filter_map(|signal| {
+                signal
+                    .inspect_err(|error| {
+                        warn!("Signal failed: {error}");
+                    })
+                    .ok()
+            })
+            .inspect(|signal| {
+                info!("Received termination signal {signal:?}, terminating");
+            })
+            .map(|_| Err(()))
+            .race(
+                stream::repeat(())
+                    .then(|()| {
+                        race(
+                            async {
+                                connection.monitor_activity().await;
+                                Ok(())
+                            },
+                            async {
+                                let timeout = Duration::from_secs(300);
+                                Timer::after(timeout).await;
+                                info!("Connection idle for {timeout:#?}, terminating");
+                                Err(())
+                            },
+                        )
+                    })
+                    .filter(Result::is_err),
+            )
+            .take(1)
+            .last();
 
-    info!("Exiting");
-    Ok(())
+        stream::stop_after_future(
+            stream::repeat(()).then(|()| connection.executor().tick()),
+            terminate,
+        )
+        .last()
+        .await;
+
+        connection.graceful_shutdown().await;
+        info!("Exiting");
+        Ok(())
+    });
+
+    async_io::block_on(executor.run(main_task))
 }
