@@ -12,7 +12,6 @@ use std::{
 use async_lock::OnceCell;
 use async_process::Command;
 use blocking::unblock;
-use futures_concurrency::prelude::*;
 use serde::Serialize;
 use tracing::{Span, debug, info, instrument};
 use url::Url;
@@ -116,23 +115,6 @@ impl SearchProvider {
             .as_ref()
     }
 
-    async fn get_icon(&self) -> Option<SerializedIcon> {
-        self.desktop_entry()
-            .await
-            .and_then(SerializedIcon::from_desktop_entry)
-    }
-
-    #[instrument(skip(self))]
-    async fn get_result_meta(&self, uri: &str) -> ResultMeta {
-        let (name, description) = search::name_and_description_of_uri(uri);
-        ResultMeta {
-            id: uri.to_string(),
-            name,
-            description,
-            icon: self.get_icon().await,
-        }
-    }
-
     #[instrument(skip(self))]
     async fn load_workspaces(&self) -> std::io::Result<Vec<String>> {
         let db_path = self.code.database_path();
@@ -181,12 +163,19 @@ impl SearchProvider {
 
     #[instrument(skip(self))]
     async fn get_result_metas(&self, identifiers: Vec<String>) -> Vec<ResultMeta> {
+        let desktop_entry = self.desktop_entry().await;
         identifiers
-            .iter()
-            .map(|uri| self.get_result_meta(uri))
+            .into_iter()
+            .map(|uri| {
+                let (name, description) = search::name_and_description_of_uri(&uri);
+                ResultMeta {
+                    id: uri,
+                    name,
+                    description,
+                    icon: desktop_entry.and_then(SerializedIcon::from_desktop_entry),
+                }
+            })
             .collect::<Vec<_>>()
-            .join()
-            .await
     }
 
     #[instrument(skip(self))]

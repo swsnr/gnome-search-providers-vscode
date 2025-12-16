@@ -24,7 +24,6 @@ async-signal = "0.2.13"
 blocking = { version = "1.6.2", features = ["tracing"] }
 configparser = "3.1.0"
 fastrand = "2.3.0"
-futures-concurrency = "7.6.3"
 futures-lite = "2.6.1"
 logcontrol-tracing = "0.2.0"
 logcontrol-zbus = "3.0.0"
