@@ -7,10 +7,10 @@
 use std::{
     io::{Error, ErrorKind},
     path::PathBuf,
+    process::Command,
 };
 
 use async_lock::OnceCell;
-use async_process::Command;
 use blocking::unblock;
 use serde::Serialize;
 use tracing::{Span, debug, info, instrument};

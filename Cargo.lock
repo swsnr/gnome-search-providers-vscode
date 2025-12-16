@@ -95,7 +95,6 @@ dependencies = [
  "event-listener",
  "futures-lite",
  "rustix",
- "tracing",
 ]
 
 [[package]]
@@ -361,7 +360,6 @@ dependencies = [
  "async-executor",
  "async-io",
  "async-lock",
- "async-process",
  "async-signal",
  "blocking",
  "configparser",
