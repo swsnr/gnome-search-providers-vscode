@@ -32,7 +32,7 @@ rusqlite = { version = "0.37.0", features = ["serde_json"] }
 serde = { version = "1.0.216", features = ["derive"] }
 serde_json = { version = "1.0.133" }
 tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", default-features = false, features = ["std", "ansi", "registry"] }
+tracing-subscriber = { version = "0.3.19", default-features = false, features = ["std", "ansi", "registry", "tracing-log"] }
 url = "2.5.4"
 zbus = { version = "5.3.0", default-features = false }
 
