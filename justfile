@@ -27,5 +27,5 @@ test-all:
     cargo +stable clippy --all-targets --locked
     cargo +stable test --locked
 
-release *ARGS: test-all
+release *ARGS:
     cargo release {{ARGS}}
