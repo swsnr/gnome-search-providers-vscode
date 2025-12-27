@@ -7,7 +7,7 @@ repository = "https://codeberg.org/swsnr/gnome-search-providers-vscode"
 version = "2.5.4"
 license = "EUPL-1.2"
 authors = ["Sebastian Wiesner <sebastian@swsnr.de>"]
-rust-version = "1.89"
+rust-version = "1.92"
 edition = "2024"
 # We don't publish this to crates.io; you can't install it with cargo install
 # because you'd miss the required service and configuration files, and you

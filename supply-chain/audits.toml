@@ -107,6 +107,11 @@ who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
 delta = "0.13.1 -> 0.13.2"
 
+[[audits.tracing-journald]]
+who = "Sebastian Wiesner <sebastian@swsnr.de>"
+criteria = "safe-to-run"
+delta = "0.3.1 -> 0.3.2"
+
 [[audits.unicode-ident]]
 who = "Sebastian Wiesner <sebastian@swsnr.de>"
 criteria = "safe-to-run"
@@ -451,7 +456,7 @@ notes = "swsnr trusts dtolnay"
 
 [[trusted.serde_spanned]]
 criteria = "safe-to-run"
-user-id = 6743 # Ed Page (epage)
+user-id = 6743
 start = "2023-01-20"
 end = "2025-10-31"
 notes = "swsnr trusts epage"
@@ -479,7 +484,7 @@ notes = "swsnr trusts dtolnay"
 
 [[trusted.target-lexicon]]
 criteria = "safe-to-run"
-user-id = 696
+user-id = 696 # Nick Fitzgerald (fitzgen)
 start = "2024-07-30"
 end = "2025-11-03"
 notes = "Trusted by bytecode alliance"
@@ -518,21 +523,21 @@ end = "2026-01-19"
 
 [[trusted.toml]]
 criteria = "safe-to-run"
-user-id = 6743 # Ed Page (epage)
+user-id = 6743
 start = "2022-12-14"
 end = "2025-10-31"
 notes = "swsnr trusts epage"
 
 [[trusted.toml_datetime]]
 criteria = "safe-to-run"
-user-id = 6743 # Ed Page (epage)
+user-id = 6743
 start = "2022-10-21"
 end = "2025-10-31"
 notes = "swsnr trusts epage"
 
 [[trusted.toml_edit]]
 criteria = "safe-to-run"
-user-id = 6743 # Ed Page (epage)
+user-id = 6743
 start = "2021-09-13"
 end = "2025-10-31"
 notes = "swsnr trusts epage"
@@ -628,7 +633,7 @@ notes = "Trusted by mozilla and bytecode-alliance"
 
 [[trusted.winnow]]
 criteria = "safe-to-run"
-user-id = 6743 # Ed Page (epage)
+user-id = 6743
 start = "2023-02-22"
 end = "2025-10-31"
 notes = "swsnr trusts epage"
