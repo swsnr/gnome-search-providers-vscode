@@ -361,7 +361,7 @@ dependencies = [
 
 [[package]]
 name = "gnome-search-providers-vscode"
-version = "2.5.4"
+version = "2.6.0"
 dependencies = [
  "async-executor",
  "async-io",
